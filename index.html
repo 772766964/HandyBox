@@ -2,7 +2,12 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+
+  <!-- viewport-fit=cover 用于适配 iPhone 刘海屏、安全区域 -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
 
   <title>HandyBox</title>
 
@@ -14,155 +19,246 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
 
   <style>
+    :root {
+      --bg: #111827;
+      --card-bg: #1f2937;
+      --card-bg-active: #374151;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --muted-light: #6b7280;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(255, 255, 255, 0.18);
+
+      --radius-lg: 20px;
+      --radius-md: 16px;
+
+      --page-max-width: 980px;
+      --card-min-height: 82px;
+    }
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
 
-    html,
-    body {
-      margin: 0;
+    html {
       min-height: 100%;
-      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      background: #111827;
-      color: #f9fafb;
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+      background: var(--bg);
     }
 
     body {
+      margin: 0;
+      min-height: 100%;
       overflow-x: hidden;
+      font-family:
+        "PingFang SC",
+        "Microsoft YaHei",
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.12), transparent 32%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
     }
 
     .app {
       width: 100%;
+      min-height: 100vh;
+      min-height: 100svh;
       min-height: 100dvh;
       padding:
-        calc(20px + env(safe-area-inset-top))
-        calc(18px + env(safe-area-inset-right))
-        calc(20px + env(safe-area-inset-bottom))
-        calc(18px + env(safe-area-inset-left));
+        calc(env(safe-area-inset-top) + clamp(14px, 4vw, 24px))
+        calc(env(safe-area-inset-right) + clamp(14px, 4vw, 24px))
+        calc(env(safe-area-inset-bottom) + clamp(14px, 4vw, 24px))
+        calc(env(safe-area-inset-left) + clamp(14px, 4vw, 24px));
       display: flex;
       flex-direction: column;
     }
 
     .header {
-      max-width: 900px;
       width: 100%;
-      margin: 0 auto 20px;
+      max-width: var(--page-max-width);
+      margin: 0 auto clamp(14px, 4vw, 22px);
     }
 
     .title {
       margin: 0;
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+      font-size: clamp(28px, 8vw, 40px);
+      line-height: 1.1;
+      font-weight: 850;
+      letter-spacing: 0.4px;
     }
 
     .subtitle {
-      margin-top: 6px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #9ca3af;
+      margin-top: 8px;
+      max-width: 36em;
+      font-size: clamp(13px, 3.6vw, 15px);
+      line-height: 1.55;
+      color: var(--muted);
     }
 
     .grid {
       width: 100%;
-      max-width: 900px;
+      max-width: var(--page-max-width);
       margin: 0 auto;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: clamp(10px, 3vw, 14px);
     }
 
     .tool-card {
-      min-height: 82px;
-      padding: 16px;
-      border-radius: 18px;
-      background: #1f2937;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: var(--card-min-height);
+      padding: clamp(13px, 3.8vw, 17px);
+      border-radius: var(--radius-lg);
+      background: rgba(31, 41, 55, 0.92);
+      border: 1px solid var(--border);
       color: inherit;
       text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: clamp(12px, 3vw, 15px);
+      touch-action: manipulation;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
       transition:
-        transform 0.15s ease,
-        background 0.15s ease,
-        border-color 0.15s ease;
+        transform 0.16s ease,
+        background 0.16s ease,
+        border-color 0.16s ease,
+        box-shadow 0.16s ease;
     }
 
     .tool-card:active {
-      transform: scale(0.98);
-      background: #374151;
-      border-color: rgba(255, 255, 255, 0.16);
+      transform: scale(0.985);
+      background: var(--card-bg-active);
+      border-color: var(--border-active);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+    }
+
+    .tool-card:focus-visible {
+      outline: 3px solid rgba(96, 165, 250, 0.9);
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .tool-card:hover {
+        transform: translateY(-2px);
+        background: #273449;
+        border-color: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+      }
     }
 
     .icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
+      width: clamp(44px, 12vw, 52px);
+      height: clamp(44px, 12vw, 52px);
+      border-radius: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex: 0 0 auto;
-      font-size: 25px;
-      background: #374151;
+      font-size: clamp(22px, 6vw, 27px);
+      background:
+        linear-gradient(145deg, rgba(75, 85, 99, 0.95), rgba(55, 65, 81, 0.95));
+    }
+
+    .tool-content {
+      min-width: 0;
     }
 
     .tool-title {
       margin-bottom: 4px;
-      font-size: 17px;
-      font-weight: 700;
+      font-size: clamp(15px, 4.4vw, 17px);
+      line-height: 1.25;
+      font-weight: 750;
       text-transform: capitalize;
+      word-break: break-word;
     }
 
     .tool-desc {
-      font-size: 13px;
+      font-size: clamp(12px, 3.5vw, 13px);
       line-height: 1.45;
-      color: #9ca3af;
+      color: var(--muted);
+      word-break: break-word;
     }
 
     .footer {
-      max-width: 900px;
       width: 100%;
+      max-width: var(--page-max-width);
       margin: auto auto 0;
-      padding-top: 22px;
+      padding-top: clamp(18px, 5vw, 28px);
       text-align: center;
       font-size: 12px;
-      color: #6b7280;
+      line-height: 1.6;
+      color: var(--muted-light);
     }
 
     /*
-      竖屏手机：保持单列，方便点击
+      竖屏手机：
+      保持单列，卡片足够大，方便单手点击。
     */
     @media (orientation: portrait) {
-      .app {
-        justify-content: flex-start;
-      }
-
       .grid {
         grid-template-columns: 1fr;
       }
     }
 
     /*
-      横屏手机：利用横向空间，变成多列
+      小屏手机：
+      进一步压缩左右边距，避免内容拥挤。
     */
-    @media (orientation: landscape) and (max-height: 520px) {
+    @media (max-width: 360px) {
       .app {
-        padding-top: calc(14px + env(safe-area-inset-top));
-        padding-bottom: calc(14px + env(safe-area-inset-bottom));
+        padding-left: calc(env(safe-area-inset-left) + 12px);
+        padding-right: calc(env(safe-area-inset-right) + 12px);
+      }
+
+      .tool-card {
+        border-radius: 16px;
+      }
+
+      .icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+      }
+    }
+
+    /*
+      横屏手机：
+      降低头部高度，使用两列布局，减少纵向滚动。
+    */
+    @media (orientation: landscape) and (max-height: 560px) {
+      .app {
+        padding-top: calc(env(safe-area-inset-top) + 10px);
+        padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
       }
 
       .header {
-        margin-bottom: 14px;
+        margin-bottom: 10px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: end;
+        gap: 10px 16px;
       }
 
       .title {
-        font-size: 26px;
+        font-size: clamp(24px, 5vw, 30px);
       }
 
       .subtitle {
-        font-size: 13px;
+        margin-top: 0;
+        font-size: 12px;
+        line-height: 1.35;
       }
 
       .grid {
@@ -171,49 +267,75 @@
       }
 
       .tool-card {
-        min-height: 72px;
-        padding: 12px;
+        min-height: 68px;
+        padding: 11px 12px;
         border-radius: 16px;
       }
 
       .icon {
-        width: 42px;
-        height: 42px;
-        font-size: 22px;
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        font-size: 21px;
       }
 
       .tool-title {
-        font-size: 16px;
+        font-size: 15px;
       }
 
       .tool-desc {
         font-size: 12px;
+        line-height: 1.35;
       }
 
       .footer {
-        padding-top: 12px;
+        padding-top: 10px;
+        font-size: 11px;
       }
     }
 
     /*
-      平板或宽屏：两列布局
+      横屏且宽度较大：
+      例如大屏手机横屏，可以三列显示。
     */
-    @media (min-width: 720px) {
+    @media (orientation: landscape) and (min-width: 820px) and (max-height: 560px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    /*
+      平板或普通宽屏：
+      两列布局。
+    */
+    @media (min-width: 720px) and (min-height: 561px) {
       .grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+    }
 
-      .title {
-        font-size: 36px;
+    /*
+      桌面宽屏：
+      三列布局。
+    */
+    @media (min-width: 1080px) and (min-height: 561px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
     /*
-      更宽屏幕：三列布局
+      减少动态效果：
+      尊重系统的“减少动态效果”设置。
     */
-    @media (min-width: 1080px) {
-      .grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
       }
     }
   </style>
@@ -226,100 +348,108 @@
       <div class="subtitle">一个放在手机里的轻量工具箱，可离线使用。</div>
     </header>
 
-    <section class="grid">
-      <a class="tool-card" href="./guandan.html">
-        <div class="icon">🃏</div>
-        <div>
+    <section class="grid" aria-label="工具列表">
+      <a class="tool-card" href="./guandan.html" aria-label="打开 Guan Dan">
+        <div class="icon" aria-hidden="true">🃏</div>
+        <div class="tool-content">
           <div class="tool-title">Guan Dan</div>
           <div class="tool-desc">记录红蓝队等级，适合牌局计分。</div>
         </div>
       </a>
 
-      <a class="tool-card" href="./cardBox.html">
-        <div class="icon">🎴</div>
-        <div>
+      <a class="tool-card" href="./cardBox.html" aria-label="打开 Card Box">
+        <div class="icon" aria-hidden="true">🎴</div>
+        <div class="tool-content">
           <div class="tool-title">Card Box</div>
           <div class="tool-desc">抽牌、随机卡牌、简单桌游辅助。</div>
         </div>
       </a>
 
-      <a class="tool-card" href="./randomPick.html">
-        <div class="icon">❓</div>
-        <div>
+      <a class="tool-card" href="./randomPick.html" aria-label="打开 Random Pick">
+        <div class="icon" aria-hidden="true">❓</div>
+        <div class="tool-content">
           <div class="tool-title">Random Pick</div>
           <div class="tool-desc">随机数、随机选择。</div>
         </div>
       </a>
 
-      <a class="tool-card" href="./dice.html">
-        <div class="icon">🎲</div>
-        <div>
+      <a class="tool-card" href="./dice.html" aria-label="打开 Dice">
+        <div class="icon" aria-hidden="true">🎲</div>
+        <div class="tool-content">
           <div class="tool-title">Dice</div>
           <div class="tool-desc">随机掷骰，适合桌游和临时决策。</div>
         </div>
       </a>
 
-      <a class="tool-card" href="./pomodoro.html">
-        <div class="icon">⏱️</div>
-        <div>
+      <a class="tool-card" href="./pomodoro.html" aria-label="打开 Pomodoro">
+        <div class="icon" aria-hidden="true">⏱️</div>
+        <div class="tool-content">
           <div class="tool-title">Pomodoro</div>
           <div class="tool-desc">专注计时、休息提醒。</div>
         </div>
       </a>
-      <a class="tool-card" href="./russianRoulette.html">
-        <div class="icon">⭕</div>
-        <div>
-          <div class="tool-title">russianRoulette</div>
-          <div class="tool-desc">俄罗斯转盘</div>
+
+      <a class="tool-card" href="./russianRoulette.html" aria-label="打开 Russian Roulette">
+        <div class="icon" aria-hidden="true">🔫</div>
+        <div class="tool-content">
+          <div class="tool-title">Russian Roulette</div>
+          <div class="tool-desc">俄罗斯转盘。</div>
         </div>
       </a>
-      <a class="tool-card" href="./spinWheel.html">
-        <div class="icon">⭕</div>
-        <div>
-          <div class="tool-title">spinWheel</div>
-          <div class="tool-desc">旋转转盘</div>
+
+      <a class="tool-card" href="./spinWheel.html" aria-label="打开 Spin Wheel">
+        <div class="icon" aria-hidden="true">🎡</div>
+        <div class="tool-content">
+          <div class="tool-title">Spin Wheel</div>
+          <div class="tool-desc">旋转转盘，随机选择。</div>
         </div>
       </a>
-      <a class="tool-card" href="./bmiCalc.html">
-        <div class="icon">⭕</div>
-        <div>
-          <div class="tool-title">spinWheel</div>
-          <div class="tool-desc">BMI 计算</div>
+
+      <a class="tool-card" href="./bmiCalc.html" aria-label="打开 BMI 计算">
+        <div class="icon" aria-hidden="true">⚖️</div>
+        <div class="tool-content">
+          <div class="tool-title">BMI</div>
+          <div class="tool-desc">BMI 计算与体重参考。</div>
         </div>
       </a>
-      <a class="tool-card" href="./scoreBoard.html">
-        <div class="icon">⭕</div>
-        <div>
+
+      <a class="tool-card" href="./scoreBoard.html" aria-label="打开 Score Board">
+        <div class="icon" aria-hidden="true">🏆</div>
+        <div class="tool-content">
           <div class="tool-title">Score Board</div>
-          <div class="tool-desc">计分期</div>
+          <div class="tool-desc">多人计分器，适合游戏和比赛。</div>
         </div>
       </a>
-      <a class="tool-card" href="./lifeCounter.html">
-        <div class="icon">⭕</div>
-        <div>
+
+      <a class="tool-card" href="./lifeCounter.html" aria-label="打开 Life Counter">
+        <div class="icon" aria-hidden="true">❤️</div>
+        <div class="tool-content">
           <div class="tool-title">Life Counter</div>
-          <div class="tool-desc">lifeCounter</div>
+          <div class="tool-desc">生命值、血量或点数计数。</div>
         </div>
       </a>
-      <a class="tool-card" href="./passwordGenerator.html">
-        <div class="icon">⭕</div>
-        <div>
+
+      <a class="tool-card" href="./passwordGenerator.html" aria-label="打开 Password Generator">
+        <div class="icon" aria-hidden="true">🔐</div>
+        <div class="tool-content">
           <div class="tool-title">Password Generator</div>
-          <div class="tool-desc">passwordGenerator</div>
+          <div class="tool-desc">快速生成随机密码。</div>
         </div>
       </a>
-      <a class="tool-card" href="./qr.html">
-        <div class="icon">⭕</div>
-        <div>
+
+      <a class="tool-card" href="./qr.html" aria-label="打开 QR 工具">
+        <div class="icon" aria-hidden="true">🔳</div>
+        <div class="tool-content">
           <div class="tool-title">QR</div>
-          <div class="tool-desc">QR</div>
+          <div class="tool-desc">二维码生成或识别工具。</div>
         </div>
       </a>
-      <a class="tool-card" href="./truthOrDare.html">
-        <div class="icon">⭕</div>
-        <div>
+
+      <a class="tool-card" href="./truthOrDare.html" aria-label="打开 Truth Or Dare">
+        <div class="icon" aria-hidden="true">🎭</div>
+        <div class="tool-content">
           <div class="tool-title">Truth Or Dare</div>
-          <div class="tool-desc">真心话大冒险</div>
+          <div class="tool-desc">真心话大冒险。</div>
         </div>
       </a>
     </section>

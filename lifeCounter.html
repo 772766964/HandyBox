@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>Life Counter / 生命计数器</title>
+  <meta name="theme-color" content="#09090b" />
+  <title>生命条计数器</title>
 
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel-2: #1f2937;
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --border: rgba(255, 255, 255, 0.12);
-      --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-      --radius: 22px;
-      --gap: clamp(6px, 1.2vmin, 12px);
-      --toolbar-h: 46px;
+      --bg: #09090b;
+      --text: #fafafa;
+      --muted: rgba(255, 255, 255, 0.68);
+      --border: rgba(255, 255, 255, 0.14);
+      --panel: rgba(24, 24, 27, 0.92);
+      --radius: 24px;
+      --gap: clamp(8px, 1.8vmin, 16px);
+      --topbar-h: 42px;
     }
 
     * {
@@ -31,8 +29,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--bg);
       color: var(--text);
+      background: var(--bg);
       font-family:
         system-ui,
         -apple-system,
@@ -40,103 +38,92 @@
         "Segoe UI",
         sans-serif;
       user-select: none;
-      touch-action: manipulation;
-    }
-
-    body {
-      min-height: 100svh;
+      touch-action: none;
     }
 
     button,
-    select,
-    input {
+    input,
+    select {
       font: inherit;
     }
 
     button {
+      border: 0;
+      color: inherit;
       cursor: pointer;
     }
 
     .app {
       width: 100%;
       height: 100dvh;
-      height: 100svh;
-      display: flex;
-      flex-direction: column;
+      min-height: 100svh;
       padding:
         env(safe-area-inset-top)
         env(safe-area-inset-right)
         env(safe-area-inset-bottom)
         env(safe-area-inset-left);
+      display: flex;
+      flex-direction: column;
       background:
-        radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
-        radial-gradient(circle at bottom right, rgba(244, 63, 94, 0.18), transparent 34%),
-        var(--bg);
+        radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.24), transparent 34%),
+        radial-gradient(circle at 90% 100%, rgba(244, 63, 94, 0.22), transparent 36%),
+        linear-gradient(135deg, #020617, #09090b 48%, #111827);
     }
 
-    .toolbar {
+    .topbar {
+      height: var(--topbar-h);
       flex: 0 0 auto;
-      min-height: var(--toolbar-h);
+      padding: 5px 8px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px;
-      overflow-x: auto;
-      overflow-y: hidden;
+      gap: 8px;
       border-bottom: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.84);
-      backdrop-filter: blur(14px);
+      background: rgba(9, 9, 11, 0.74);
+      backdrop-filter: blur(16px);
     }
 
-    .toolbar::-webkit-scrollbar {
-      display: none;
-    }
-
-    .tool {
-      height: 34px;
-      flex: 0 0 auto;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.08);
-      padding: 0 10px;
-      outline: none;
+    .title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    select.tool {
-      appearance: none;
-      padding-right: 28px;
-      background-image:
-        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-      background-position:
-        calc(100% - 15px) 14px,
-        calc(100% - 10px) 14px;
-      background-size: 5px 5px;
-      background-repeat: no-repeat;
+    .top-btn {
+      flex: 0 0 auto;
+      height: 30px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
     }
 
-    .tool:active {
-      transform: scale(0.97);
+    .top-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.18);
     }
 
-    .tool.primary {
-      background: #2563eb;
-      border-color: rgba(255, 255, 255, 0.18);
+    .top-btn.danger {
+      background: rgba(225, 29, 72, 0.78);
     }
 
-    .tool.danger {
-      background: #be123c;
-      border-color: rgba(255, 255, 255, 0.18);
+    .top-btn.primary {
+      background: rgba(37, 99, 235, 0.82);
     }
 
     .board {
       flex: 1 1 auto;
       min-height: 0;
+      padding: var(--gap);
       display: grid;
       gap: var(--gap);
-      padding: var(--gap);
     }
 
     .board.players-1 {
@@ -155,157 +142,329 @@
       grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
     }
 
-    .counter {
+    .life-card {
+      position: relative;
       min-width: 0;
       min-height: 0;
       overflow: hidden;
       border-radius: var(--radius);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       background:
-        linear-gradient(145deg, color-mix(in srgb, var(--accent) 34%, #111827), #111827 64%),
-        var(--panel);
-      position: relative;
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent 38%),
+        rgba(255, 255, 255, 0.06);
+      box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.38),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      isolation: isolate;
+      touch-action: none;
+      cursor: pointer;
     }
 
-    .counter::before {
+    .life-card.dragging {
+      transform: scale(0.992);
+    }
+
+    .life-track {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+        rgba(0, 0, 0, 0.28);
+      z-index: 0;
+    }
+
+    .life-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 50%;
+      background:
+        linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--accent) 58%, #000),
+          var(--accent) 62%,
+          color-mix(in srgb, var(--accent) 76%, #fff)
+        );
+      box-shadow:
+        0 0 34px color-mix(in srgb, var(--accent) 42%, transparent),
+        inset 0 0 22px rgba(255, 255, 255, 0.18);
+      transition:
+        width 120ms ease,
+        background 160ms ease;
+      z-index: 1;
+    }
+
+    .life-fill::after {
       content: "";
       position: absolute;
       inset: 0;
       background:
         linear-gradient(
           120deg,
-          rgba(255, 255, 255, 0.12),
-          transparent 28%,
-          transparent 72%,
-          rgba(255, 255, 255, 0.06)
+          transparent 0%,
+          rgba(255, 255, 255, 0.28) 18%,
+          transparent 34%,
+          transparent 100%
         );
-      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.62;
     }
 
-    .counter-inner {
+    .life-card.low .life-fill {
+      background:
+        linear-gradient(90deg, #7f1d1d, #ef4444 60%, #fb7185);
+      box-shadow:
+        0 0 34px rgba(239, 68, 68, 0.45),
+        inset 0 0 22px rgba(255, 255, 255, 0.16);
+    }
+
+    .life-card.over .life-fill {
+      background:
+        linear-gradient(90deg, #065f46, #22c55e 58%, #a7f3d0);
+      box-shadow:
+        0 0 42px rgba(34, 197, 94, 0.48),
+        inset 0 0 22px rgba(255, 255, 255, 0.2);
+    }
+
+    .life-content {
       position: relative;
-      z-index: 1;
+      z-index: 2;
       width: 100%;
       height: 100%;
+      padding: clamp(12px, 3vmin, 26px);
       display: grid;
-      grid-template-columns: minmax(54px, 18%) 1fr minmax(54px, 18%);
-      transition: transform 160ms ease;
+      grid-template:
+        "name meta" auto
+        "value value" 1fr
+        "hint hint" auto
+        / 1fr auto;
+      gap: 4px 10px;
+      text-shadow: 0 3px 14px rgba(0, 0, 0, 0.52);
     }
 
-    .board.flip-table.players-2 .counter:first-child .counter-inner {
-      transform: rotate(180deg);
-    }
-
-    .delta-big {
-      border: 0;
-      color: rgba(255, 255, 255, 0.96);
-      background: rgba(0, 0, 0, 0.18);
+    .player-name {
+      grid-area: name;
+      align-self: start;
+      min-width: 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: clamp(15px, 3vmin, 24px);
       font-weight: 900;
-      font-size: clamp(30px, 9vmin, 72px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 0;
-      min-height: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .delta-big:active,
-    .quick-btn:active {
-      background: rgba(255, 255, 255, 0.18);
-      transform: scale(0.98);
-    }
-
-    .center {
-      min-width: 0;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(4px, 1.2vmin, 12px);
-      gap: clamp(2px, 0.8vmin, 8px);
-    }
-
-    .name {
-      width: min(92%, 360px);
-      border: 0;
+    .life-meta {
+      grid-area: meta;
+      justify-self: end;
+      align-self: start;
+      padding: 4px 9px;
       border-radius: 999px;
-      outline: none;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.92);
-      background: rgba(0, 0, 0, 0.18);
-      padding: 5px 10px;
-      font-weight: 700;
-      font-size: clamp(13px, 2.5vmin, 20px);
-      user-select: text;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: rgba(255, 255, 255, 0.78);
+      font-size: clamp(11px, 2.2vmin, 14px);
+      font-weight: 800;
+      white-space: nowrap;
     }
 
-    .value {
-      line-height: 0.9;
-      letter-spacing: -0.08em;
+    .life-value {
+      grid-area: value;
+      align-self: center;
+      justify-self: center;
+      line-height: 0.86;
+      letter-spacing: -0.09em;
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
-      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
-      font-size: clamp(56px, 23vmin, 178px);
+      font-size: clamp(60px, 24vmin, 210px);
     }
 
-    .players-1 .value {
-      font-size: clamp(90px, 34vmin, 260px);
+    .players-1 .life-value {
+      font-size: clamp(96px, 38vmin, 310px);
     }
 
-    .players-3 .value {
-      font-size: clamp(42px, 15vmin, 120px);
+    .players-3 .life-value,
+    .players-4 .life-value {
+      font-size: clamp(42px, 15vmin, 132px);
     }
 
-    .players-4 .value {
-      font-size: clamp(42px, 14vmin, 118px);
+    .life-hint {
+      grid-area: hint;
+      justify-self: center;
+      color: rgba(255, 255, 255, 0.74);
+      font-size: clamp(11px, 2.2vmin, 15px);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .swipe-indicator {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 8px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+      z-index: 3;
+    }
+
+    .swipe-indicator span {
+      display: block;
+      width: 50%;
+      height: 100%;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.42);
+      transform: translateX(50%);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.56);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .editor {
+      width: min(520px, 100%);
+      max-height: calc(100dvh - 24px);
+      overflow: auto;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 34%),
+        rgba(24, 24, 27, 0.96);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+      padding: 16px;
+    }
+
+    .editor-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .editor-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 1000;
+    }
+
+    .close-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      outline: none;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.26);
+      padding: 0 12px;
+      font-weight: 800;
+    }
+
+    .field input[type="color"] {
+      padding: 4px;
+      height: 44px;
+    }
+
+    .field input[type="range"] {
+      padding: 0;
+      accent-color: var(--accent, #3b82f6);
     }
 
     .quick-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      flex-wrap: nowrap;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+      margin-top: 2px;
     }
 
-    .quick-btn {
-      min-width: clamp(38px, 8vmin, 64px);
-      height: clamp(26px, 5vmin, 38px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 999px;
-      color: var(--text);
-      background: rgba(0, 0, 0, 0.2);
-      font-weight: 900;
-      font-size: clamp(12px, 2.4vmin, 17px);
+    .quick-row button {
+      min-height: 38px;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 1000;
     }
 
-    .badge {
-      position: absolute;
-      top: 8px;
-      left: 10px;
-      z-index: 2;
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      pointer-events: none;
+    .quick-row button:active,
+    .close-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .editor-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .editor-actions button {
+      min-height: 44px;
+      border-radius: 15px;
+      font-weight: 1000;
+    }
+
+    .editor-actions .ok {
+      background: #2563eb;
+    }
+
+    .editor-actions .reset-one {
+      background: rgba(225, 29, 72, 0.82);
     }
 
     @media (orientation: landscape) {
       :root {
-        --toolbar-h: 42px;
+        --topbar-h: 38px;
+        --gap: clamp(6px, 1.4vmin, 12px);
       }
 
-      .toolbar {
-        min-height: var(--toolbar-h);
-        padding: 4px 6px;
+      .topbar {
+        padding-block: 4px;
       }
 
-      .tool {
-        height: 32px;
+      .top-btn {
+        height: 28px;
       }
 
       .board.players-2 {
@@ -320,50 +479,70 @@
         grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
       }
 
-      .value {
-        font-size: clamp(48px, 18vmin, 150px);
+      .life-value {
+        font-size: clamp(52px, 19vmin, 170px);
       }
 
-      .players-1 .value {
-        font-size: clamp(80px, 34vmin, 240px);
+      .players-1 .life-value {
+        font-size: clamp(90px, 34vmin, 270px);
       }
 
-      .players-3 .value,
-      .players-4 .value {
-        font-size: clamp(38px, 14vmin, 110px);
+      .players-3 .life-value,
+      .players-4 .life-value {
+        font-size: clamp(38px, 13vmin, 112px);
       }
 
-      .counter-inner {
-        grid-template-columns: minmax(48px, 17%) 1fr minmax(48px, 17%);
+      .editor {
+        width: min(760px, 100%);
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
       }
     }
 
     @media (max-height: 520px) {
-      .quick-row {
+      .life-hint {
         display: none;
       }
 
-      .name {
-        padding-block: 3px;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .toolbar {
-        gap: 4px;
+      .life-content {
+        padding: 10px 12px;
       }
 
-      .tool {
-        padding-inline: 8px;
+      .player-name {
         font-size: 13px;
       }
 
-      .counter-inner {
-        grid-template-columns: minmax(46px, 17%) 1fr minmax(46px, 17%);
+      .life-meta {
+        font-size: 11px;
       }
 
-      .quick-btn {
-        min-width: 34px;
+      .editor {
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .top-btn {
+        padding-inline: 8px;
+        font-size: 12px;
+      }
+
+      .title {
+        font-size: 12px;
+      }
+
+      .quick-row {
+        gap: 5px;
+      }
+
+      .quick-row button {
+        font-size: 13px;
       }
     }
   </style>
@@ -371,79 +550,144 @@
 
 <body>
   <div class="app">
-    <header class="toolbar" aria-label="控制栏">
-      <select id="playerCount" class="tool" aria-label="玩家数量">
-        <option value="1">1人</option>
-        <option value="2">2人</option>
-        <option value="3">3人</option>
-        <option value="4">4人</option>
-      </select>
-
-      <select id="preset" class="tool" aria-label="起始数值">
-        <option value="6">宝可梦奖赏 6</option>
-        <option value="10">10</option>
-        <option value="20">万智牌 20</option>
-        <option value="30">30</option>
-        <option value="40">指挥官 40</option>
-        <option value="60">60</option>
-        <option value="100">100</option>
-      </select>
-
-      <select id="step" class="tool" aria-label="主按钮步进">
-        <option value="1">步进 ±1</option>
-        <option value="2">步进 ±2</option>
-        <option value="5">步进 ±5</option>
-        <option value="10">步进 ±10</option>
-      </select>
-
-      <button id="flipBtn" class="tool" type="button">对坐：开</button>
-      <button id="resetBtn" class="tool danger" type="button">重置</button>
-      <button id="wakeBtn" class="tool primary" type="button">常亮</button>
+    <header class="topbar">
+      <div id="statusTitle" class="title">滑动生命条增减，点击编辑</div>
+      <button id="openSettingsBtn" class="top-btn primary" type="button">设置</button>
+      <button id="resetAllBtn" class="top-btn danger" type="button">重置</button>
+      <button id="wakeBtn" class="top-btn" type="button">常亮</button>
     </header>
 
-    <main id="board" class="board players-2 flip-table" aria-label="生命计数器"></main>
+    <main id="board" class="board" aria-label="生命条区域"></main>
+  </div>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="编辑生命条">
+    <section class="editor">
+      <div class="editor-head">
+        <div class="editor-title">编辑生命条</div>
+        <button id="closeModalBtn" class="close-btn" type="button" aria-label="关闭">×</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="playerCountInput">显示玩家数量</label>
+          <select id="playerCountInput">
+            <option value="1">1 人</option>
+            <option value="2">2 人</option>
+            <option value="3">3 人</option>
+            <option value="4">4 人</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="editPlayerInput">当前编辑玩家</label>
+          <select id="editPlayerInput"></select>
+        </div>
+
+        <div class="field">
+          <label for="playerNameInput">玩家名称</label>
+          <input id="playerNameInput" type="text" maxlength="16" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="playerColorInput">生命条颜色</label>
+          <input id="playerColorInput" type="color" />
+        </div>
+
+        <div class="field">
+          <label for="lifeValueInput">当前生命</label>
+          <input id="lifeValueInput" type="number" inputmode="numeric" />
+        </div>
+
+        <div class="field">
+          <label for="lifeMaxInput">生命上限 / 满血值</label>
+          <input id="lifeMaxInput" type="number" inputmode="numeric" min="1" />
+        </div>
+
+        <div class="field">
+          <label for="stepInput">滑动步进</label>
+          <select id="stepInput">
+            <option value="1">每格 ±1</option>
+            <option value="2">每格 ±2</option>
+            <option value="5">每格 ±5</option>
+            <option value="10">每格 ±10</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="lifeRangeInput">拖动调整生命</label>
+          <input id="lifeRangeInput" type="range" min="0" max="40" step="1" />
+        </div>
+
+        <div class="field full">
+          <label>快速调整</label>
+          <div class="quick-row">
+            <button type="button" data-quick="-10">-10</button>
+            <button type="button" data-quick="-5">-5</button>
+            <button type="button" data-quick="-1">-1</button>
+            <button type="button" data-quick="1">+1</button>
+            <button type="button" data-quick="5">+5</button>
+            <button type="button" data-quick="10">+10</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-actions">
+        <button id="resetOneBtn" class="reset-one" type="button">当前玩家满血</button>
+        <button id="doneBtn" class="ok" type="button">完成</button>
+      </div>
+    </section>
   </div>
 
   <script>
-    const STORAGE_KEY = "life-counter-static-v1";
+    const STORAGE_KEY = "mobile-life-bar-counter-v2";
 
     const defaultState = {
       count: 2,
-      preset: 20,
       step: 1,
-      flip: true,
       players: [
-        { name: "玩家 1", value: 20, accent: "#ef4444" },
-        { name: "玩家 2", value: 20, accent: "#3b82f6" },
-        { name: "玩家 3", value: 20, accent: "#22c55e" },
-        { name: "玩家 4", value: 20, accent: "#a855f7" }
+        { name: "玩家 1", value: 20, max: 20, color: "#ef4444" },
+        { name: "玩家 2", value: 20, max: 20, color: "#3b82f6" },
+        { name: "玩家 3", value: 20, max: 20, color: "#22c55e" },
+        { name: "玩家 4", value: 20, max: 20, color: "#a855f7" }
       ]
     };
 
     let state = loadState();
+    let activeIndex = 0;
+    let wakeLock = null;
+    let gesture = null;
 
     const board = document.getElementById("board");
-    const playerCountEl = document.getElementById("playerCount");
-    const presetEl = document.getElementById("preset");
-    const stepEl = document.getElementById("step");
-    const flipBtn = document.getElementById("flipBtn");
-    const resetBtn = document.getElementById("resetBtn");
+    const statusTitle = document.getElementById("statusTitle");
+    const openSettingsBtn = document.getElementById("openSettingsBtn");
+    const resetAllBtn = document.getElementById("resetAllBtn");
     const wakeBtn = document.getElementById("wakeBtn");
 
-    let repeatDelayTimer = null;
-    let repeatIntervalTimer = null;
-    let wakeLock = null;
+    const modal = document.getElementById("modal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const doneBtn = document.getElementById("doneBtn");
+    const resetOneBtn = document.getElementById("resetOneBtn");
+
+    const playerCountInput = document.getElementById("playerCountInput");
+    const editPlayerInput = document.getElementById("editPlayerInput");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const playerColorInput = document.getElementById("playerColorInput");
+    const lifeValueInput = document.getElementById("lifeValueInput");
+    const lifeMaxInput = document.getElementById("lifeMaxInput");
+    const stepInput = document.getElementById("stepInput");
+    const lifeRangeInput = document.getElementById("lifeRangeInput");
 
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (!saved || typeof saved !== "object") return structuredClone(defaultState);
+        if (!saved || typeof saved !== "object") {
+          return structuredClone(defaultState);
+        }
 
-        const merged = {
-          ...structuredClone(defaultState),
-          ...saved,
-          players: structuredClone(defaultState.players)
-        };
+        const merged = structuredClone(defaultState);
+
+        merged.count = clamp(Number(saved.count), 1, 4, defaultState.count);
+        merged.step = clamp(Number(saved.step), 1, 10, defaultState.step);
 
         if (Array.isArray(saved.players)) {
           saved.players.slice(0, 4).forEach((player, index) => {
@@ -451,13 +695,13 @@
               ...merged.players[index],
               ...player
             };
+
+            merged.players[index].value = Number(merged.players[index].value) || 0;
+            merged.players[index].max = Math.max(1, Number(merged.players[index].max) || 20);
+            merged.players[index].name = String(merged.players[index].name || `玩家 ${index + 1}`);
+            merged.players[index].color = String(merged.players[index].color || merged.players[index].color);
           });
         }
-
-        merged.count = clampNumber(Number(merged.count), 1, 4, 2);
-        merged.preset = Number.isFinite(Number(merged.preset)) ? Number(merged.preset) : 20;
-        merged.step = Number.isFinite(Number(merged.step)) ? Number(merged.step) : 1;
-        merged.flip = Boolean(merged.flip);
 
         return merged;
       } catch {
@@ -469,7 +713,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
-    function clampNumber(value, min, max, fallback) {
+    function clamp(value, min, max, fallback) {
       if (!Number.isFinite(value)) return fallback;
       return Math.min(max, Math.max(min, value));
     }
@@ -483,71 +727,89 @@
         .replaceAll("'", "&#039;");
     }
 
+    function getPercent(player) {
+      const max = Math.max(1, Number(player.max) || 1);
+      const value = Number(player.value) || 0;
+      return Math.min(100, Math.max(0, (value / max) * 100));
+    }
+
+    function getCardClass(player) {
+      const max = Math.max(1, Number(player.max) || 1);
+      const value = Number(player.value) || 0;
+
+      if (value > max) return "over";
+      if (value <= max * 0.25) return "low";
+      return "";
+    }
+
     function render() {
-      board.className = `board players-${state.count}${state.flip ? " flip-table" : ""}`;
+      board.className = `board players-${state.count}`;
+      statusTitle.textContent = `${state.count} 人 · 左右滑动增减 · 点击编辑`;
 
       board.innerHTML = state.players
         .slice(0, state.count)
         .map((player, index) => {
+          const percent = getPercent(player);
+          const extraClass = getCardClass(player);
           const name = escapeHTML(player.name || `玩家 ${index + 1}`);
           const value = Number(player.value) || 0;
-          const accent = player.accent || "#3b82f6";
+          const max = Math.max(1, Number(player.max) || 1);
+          const color = player.color || "#3b82f6";
 
           return `
-            <section class="counter" style="--accent: ${accent};" aria-label="${name}">
-              <span class="badge">P${index + 1}</span>
+            <section
+              class="life-card ${extraClass}"
+              data-index="${index}"
+              style="--accent: ${color};"
+              role="slider"
+              aria-label="${name} 生命值"
+              aria-valuemin="0"
+              aria-valuemax="${max}"
+              aria-valuenow="${value}"
+            >
+              <div class="life-track"></div>
+              <div class="life-fill" style="width: ${percent}%;"></div>
 
-              <div class="counter-inner">
-                <button
-                  class="delta-big"
-                  type="button"
-                  data-index="${index}"
-                  data-delta="${-state.step}"
-                  aria-label="${name} 减少 ${state.step}"
-                >−</button>
-
-                <div class="center">
-                  <input
-                    class="name"
-                    data-index="${index}"
-                    value="${name}"
-                    aria-label="玩家名称"
-                    maxlength="16"
-                  />
-
-                  <div class="value" aria-live="polite">${value}</div>
-
-                  <div class="quick-row" aria-label="快速加减">
-                    <button class="quick-btn" type="button" data-index="${index}" data-delta="-5">−5</button>
-                    <button class="quick-btn" type="button" data-index="${index}" data-delta="-1">−1</button>
-                    <button class="quick-btn" type="button" data-index="${index}" data-delta="1">+1</button>
-                    <button class="quick-btn" type="button" data-index="${index}" data-delta="5">+5</button>
-                  </div>
-                </div>
-
-                <button
-                  class="delta-big"
-                  type="button"
-                  data-index="${index}"
-                  data-delta="${state.step}"
-                  aria-label="${name} 增加 ${state.step}"
-                >+</button>
+              <div class="life-content">
+                <div class="player-name">${name}</div>
+                <div class="life-meta">上限 ${max}</div>
+                <div class="life-value">${value}</div>
+                <div class="life-hint">← 滑动减少　点击编辑　滑动增加 →</div>
               </div>
+
+              <div class="swipe-indicator"><span></span></div>
             </section>
           `;
         })
         .join("");
 
-      syncControls();
       saveState();
+      syncWakeButton();
     }
 
-    function syncControls() {
-      playerCountEl.value = String(state.count);
-      presetEl.value = String(state.preset);
-      stepEl.value = String(state.step);
-      flipBtn.textContent = `对坐：${state.flip ? "开" : "关"}`;
-      wakeBtn.textContent = wakeLock ? "常亮中" : "常亮";
+    function updateCard(index) {
+      const player = state.players[index];
+      const card = board.querySelector(`.life-card[data-index="${index}"]`);
+      if (!player || !card) return;
+
+      const percent = getPercent(player);
+      const value = Number(player.value) || 0;
+      const max = Math.max(1, Number(player.max) || 1);
+
+      card.classList.toggle("low", getCardClass(player) === "low");
+      card.classList.toggle("over", getCardClass(player) === "over");
+      card.setAttribute("aria-valuemax", String(max));
+      card.setAttribute("aria-valuenow", String(value));
+
+      const fill = card.querySelector(".life-fill");
+      const valueEl = card.querySelector(".life-value");
+      const metaEl = card.querySelector(".life-meta");
+
+      if (fill) fill.style.width = `${percent}%`;
+      if (valueEl) valueEl.textContent = String(value);
+      if (metaEl) metaEl.textContent = `上限 ${max}`;
+
+      saveState();
     }
 
     function changeValue(index, delta) {
@@ -555,100 +817,243 @@
       if (!player) return;
 
       player.value = Number(player.value || 0) + Number(delta || 0);
+      updateCard(index);
 
-      const counter = board.querySelectorAll(".counter")[index];
-      const valueEl = counter?.querySelector(".value");
-      if (valueEl) valueEl.textContent = player.value;
-
-      saveState();
+      if (!modal.classList.contains("hidden") && index === activeIndex) {
+        fillEditorFields();
+      }
     }
 
-    function clearRepeatTimers() {
-      if (repeatDelayTimer) {
-        clearTimeout(repeatDelayTimer);
-        repeatDelayTimer = null;
-      }
+    function openEditor(index = 0) {
+      activeIndex = clamp(index, 0, state.count - 1, 0);
+      rebuildEditorPlayerSelect();
+      fillEditorFields();
+      modal.classList.remove("hidden");
+    }
 
-      if (repeatIntervalTimer) {
-        clearInterval(repeatIntervalTimer);
-        repeatIntervalTimer = null;
-      }
+    function closeEditor() {
+      modal.classList.add("hidden");
+    }
+
+    function rebuildEditorPlayerSelect() {
+      playerCountInput.value = String(state.count);
+      stepInput.value = String(state.step);
+
+      editPlayerInput.innerHTML = state.players
+        .slice(0, state.count)
+        .map((player, index) => {
+          const name = escapeHTML(player.name || `玩家 ${index + 1}`);
+          return `<option value="${index}">${index + 1}. ${name}</option>`;
+        })
+        .join("");
+
+      editPlayerInput.value = String(activeIndex);
+    }
+
+    function fillEditorFields() {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      const max = Math.max(1, Number(player.max) || 1);
+      const value = Number(player.value) || 0;
+      const rangeMax = Math.max(max * 2, value, 40);
+
+      playerNameInput.value = player.name || `玩家 ${activeIndex + 1}`;
+      playerColorInput.value = player.color || "#3b82f6";
+      lifeValueInput.value = String(value);
+      lifeMaxInput.value = String(max);
+
+      lifeRangeInput.min = "0";
+      lifeRangeInput.max = String(rangeMax);
+      lifeRangeInput.step = "1";
+      lifeRangeInput.value = String(Math.max(0, value));
+
+      document.documentElement.style.setProperty("--accent", player.color || "#3b82f6");
+    }
+
+    function updateActivePlayerFromEditor() {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      player.name = playerNameInput.value.trim() || `玩家 ${activeIndex + 1}`;
+      player.color = playerColorInput.value || player.color;
+      player.value = Number(lifeValueInput.value) || 0;
+      player.max = Math.max(1, Number(lifeMaxInput.value) || 1);
+
+      render();
+      rebuildEditorPlayerSelect();
+      editPlayerInput.value = String(activeIndex);
+      fillEditorFields();
     }
 
     board.addEventListener("pointerdown", (event) => {
-      const button = event.target.closest("[data-delta]");
-      if (!button) return;
+      const card = event.target.closest(".life-card");
+      if (!card) return;
 
-      event.preventDefault();
+      const index = Number(card.dataset.index);
 
-      const index = Number(button.dataset.index);
-      const delta = Number(button.dataset.delta);
+      gesture = {
+        index,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        lastX: event.clientX,
+        moved: false,
+        card
+      };
 
-      changeValue(index, delta);
-
-      repeatDelayTimer = setTimeout(() => {
-        repeatIntervalTimer = setInterval(() => {
-          changeValue(index, delta);
-        }, 75);
-      }, 360);
+      card.classList.add("dragging");
 
       try {
-        button.setPointerCapture(event.pointerId);
+        card.setPointerCapture(event.pointerId);
       } catch {
-        // 某些浏览器可能不支持，忽略即可。
+        // 忽略部分浏览器不支持 setPointerCapture 的情况。
       }
     });
 
-    window.addEventListener("pointerup", clearRepeatTimers);
-    window.addEventListener("pointercancel", clearRepeatTimers);
-    window.addEventListener("blur", clearRepeatTimers);
+    board.addEventListener("pointermove", (event) => {
+      if (!gesture) return;
 
-    board.addEventListener("input", (event) => {
-      const input = event.target.closest(".name");
-      if (!input) return;
+      const dxTotal = event.clientX - gesture.startX;
+      const dyTotal = event.clientY - gesture.startY;
 
-      const index = Number(input.dataset.index);
-      if (!state.players[index]) return;
+      if (Math.abs(dxTotal) > 8 || Math.abs(dyTotal) > 8) {
+        gesture.moved = true;
+      }
 
-      state.players[index].name = input.value.trim() || `玩家 ${index + 1}`;
-      saveState();
+      const pixelsPerStep = 24;
+      const dx = event.clientX - gesture.lastX;
+      const units = Math.trunc(dx / pixelsPerStep);
+
+      if (units !== 0) {
+        changeValue(gesture.index, units * state.step);
+        gesture.lastX += units * pixelsPerStep;
+      }
     });
 
-    playerCountEl.addEventListener("change", () => {
-      state.count = clampNumber(Number(playerCountEl.value), 1, 4, 2);
-      render();
+    function finishGesture() {
+      if (!gesture) return;
+
+      const currentGesture = gesture;
+      currentGesture.card.classList.remove("dragging");
+
+      if (!currentGesture.moved) {
+        openEditor(currentGesture.index);
+      }
+
+      gesture = null;
+    }
+
+    board.addEventListener("pointerup", finishGesture);
+    board.addEventListener("pointercancel", finishGesture);
+    window.addEventListener("blur", () => {
+      if (gesture?.card) {
+        gesture.card.classList.remove("dragging");
+      }
+      gesture = null;
     });
 
-    presetEl.addEventListener("change", () => {
-      state.preset = Number(presetEl.value);
-      saveState();
-      syncControls();
+    openSettingsBtn.addEventListener("click", () => {
+      openEditor(Math.min(activeIndex, state.count - 1));
     });
 
-    stepEl.addEventListener("change", () => {
-      state.step = Number(stepEl.value);
-      render();
-    });
-
-    flipBtn.addEventListener("click", () => {
-      state.flip = !state.flip;
-      render();
-    });
-
-    resetBtn.addEventListener("click", () => {
-      const ok = confirm(`将当前 ${state.count} 名玩家全部重置为 ${state.preset}？`);
+    resetAllBtn.addEventListener("click", () => {
+      const ok = confirm("确定把当前显示的所有玩家恢复到满血吗？");
       if (!ok) return;
 
       for (let i = 0; i < state.count; i++) {
-        state.players[i].value = state.preset;
+        state.players[i].value = Math.max(1, Number(state.players[i].max) || 20);
       }
 
       render();
+
+      if (!modal.classList.contains("hidden")) {
+        fillEditorFields();
+      }
+    });
+
+    closeModalBtn.addEventListener("click", closeEditor);
+    doneBtn.addEventListener("click", closeEditor);
+
+    modal.addEventListener("pointerdown", (event) => {
+      if (event.target === modal) {
+        closeEditor();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeEditor();
+      }
+    });
+
+    playerCountInput.addEventListener("change", () => {
+      state.count = clamp(Number(playerCountInput.value), 1, 4, 2);
+      activeIndex = Math.min(activeIndex, state.count - 1);
+      render();
+      rebuildEditorPlayerSelect();
+      fillEditorFields();
+    });
+
+    editPlayerInput.addEventListener("change", () => {
+      activeIndex = clamp(Number(editPlayerInput.value), 0, state.count - 1, 0);
+      fillEditorFields();
+    });
+
+    stepInput.addEventListener("change", () => {
+      state.step = clamp(Number(stepInput.value), 1, 10, 1);
+      saveState();
+    });
+
+    playerNameInput.addEventListener("input", updateActivePlayerFromEditor);
+    playerColorInput.addEventListener("input", updateActivePlayerFromEditor);
+
+    lifeValueInput.addEventListener("input", () => {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      player.value = Number(lifeValueInput.value) || 0;
+      updateCard(activeIndex);
+      fillEditorFields();
+    });
+
+    lifeMaxInput.addEventListener("input", () => {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      player.max = Math.max(1, Number(lifeMaxInput.value) || 1);
+      render();
+      fillEditorFields();
+    });
+
+    lifeRangeInput.addEventListener("input", () => {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      player.value = Number(lifeRangeInput.value) || 0;
+      lifeValueInput.value = String(player.value);
+      updateCard(activeIndex);
+    });
+
+    document.querySelector(".quick-row").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-quick]");
+      if (!button) return;
+
+      changeValue(activeIndex, Number(button.dataset.quick));
+    });
+
+    resetOneBtn.addEventListener("click", () => {
+      const player = state.players[activeIndex];
+      if (!player) return;
+
+      player.value = Math.max(1, Number(player.max) || 20);
+      updateCard(activeIndex);
+      fillEditorFields();
     });
 
     async function requestWakeLock() {
       if (!("wakeLock" in navigator)) {
-        alert("当前浏览器不支持屏幕常亮 Wake Lock。");
+        alert("当前浏览器不支持屏幕常亮。");
         return;
       }
 
@@ -657,12 +1062,12 @@
 
         wakeLock.addEventListener("release", () => {
           wakeLock = null;
-          syncControls();
+          syncWakeButton();
         });
 
-        syncControls();
+        syncWakeButton();
       } catch {
-        alert("无法开启屏幕常亮。请确认页面在 HTTPS / PWA 环境中运行。");
+        alert("无法开启屏幕常亮。通常需要 HTTPS 或安装为 PWA 后使用。");
       }
     }
 
@@ -673,8 +1078,12 @@
         await wakeLock.release();
       } finally {
         wakeLock = null;
-        syncControls();
+        syncWakeButton();
       }
+    }
+
+    function syncWakeButton() {
+      wakeBtn.textContent = wakeLock ? "常亮中" : "常亮";
     }
 
     wakeBtn.addEventListener("click", async () => {
@@ -692,17 +1101,6 @@
     });
 
     render();
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js")
-          .then(function () {
-            console.log("Service Worker 注册成功");
-          })
-          .catch(function (error) {
-            console.warn("Service Worker 注册失败", error);
-          });
-      });
-    }
   </script>
 </body>
 </html>
