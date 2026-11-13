@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Life Counter / 生命计数器</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      --radius: 22px;
+      --gap: clamp(6px, 1.2vmin, 12px);
+      --toolbar-h: 46px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      min-height: 100svh;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      height: 100dvh;
+      height: 100svh;
+      display: flex;
+      flex-direction: column;
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(244, 63, 94, 0.18), transparent 34%),
+        var(--bg);
+    }
+
+    .toolbar {
+      flex: 0 0 auto;
+      min-height: var(--toolbar-h);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(14px);
+    }
+
+    .toolbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tool {
+      height: 34px;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0 10px;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    select.tool {
+      appearance: none;
+      padding-right: 28px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - 15px) 14px,
+        calc(100% - 10px) 14px;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    .tool:active {
+      transform: scale(0.97);
+    }
+
+    .tool.primary {
+      background: #2563eb;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .tool.danger {
+      background: #be123c;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .board {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      gap: var(--gap);
+      padding: var(--gap);
+    }
+
+    .board.players-1 {
+      grid-template: 1fr / 1fr;
+    }
+
+    .board.players-2 {
+      grid-template: repeat(2, minmax(0, 1fr)) / 1fr;
+    }
+
+    .board.players-3 {
+      grid-template: repeat(3, minmax(0, 1fr)) / 1fr;
+    }
+
+    .board.players-4 {
+      grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+    }
+
+    .counter {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: var(--shadow);
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--accent) 34%, #111827), #111827 64%),
+        var(--panel);
+      position: relative;
+    }
+
+    .counter::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.12),
+          transparent 28%,
+          transparent 72%,
+          rgba(255, 255, 255, 0.06)
+        );
+      pointer-events: none;
+    }
+
+    .counter-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(54px, 18%) 1fr minmax(54px, 18%);
+      transition: transform 160ms ease;
+    }
+
+    .board.flip-table.players-2 .counter:first-child .counter-inner {
+      transform: rotate(180deg);
+    }
+
+    .delta-big {
+      border: 0;
+      color: rgba(255, 255, 255, 0.96);
+      background: rgba(0, 0, 0, 0.18);
+      font-weight: 900;
+      font-size: clamp(30px, 9vmin, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .delta-big:active,
+    .quick-btn:active {
+      background: rgba(255, 255, 255, 0.18);
+      transform: scale(0.98);
+    }
+
+    .center {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(4px, 1.2vmin, 12px);
+      gap: clamp(2px, 0.8vmin, 8px);
+    }
+
+    .name {
+      width: min(92%, 360px);
+      border: 0;
+      border-radius: 999px;
+      outline: none;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.92);
+      background: rgba(0, 0, 0, 0.18);
+      padding: 5px 10px;
+      font-weight: 700;
+      font-size: clamp(13px, 2.5vmin, 20px);
+      user-select: text;
+    }
+
+    .value {
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+      font-size: clamp(56px, 23vmin, 178px);
+    }
+
+    .players-1 .value {
+      font-size: clamp(90px, 34vmin, 260px);
+    }
+
+    .players-3 .value {
+      font-size: clamp(42px, 15vmin, 120px);
+    }
+
+    .players-4 .value {
+      font-size: clamp(42px, 14vmin, 118px);
+    }
+
+    .quick-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: nowrap;
+    }
+
+    .quick-btn {
+      min-width: clamp(38px, 8vmin, 64px);
+      height: clamp(26px, 5vmin, 38px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.2);
+      font-weight: 900;
+      font-size: clamp(12px, 2.4vmin, 17px);
+    }
+
+    .badge {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      z-index: 2;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    @media (orientation: landscape) {
+      :root {
+        --toolbar-h: 42px;
+      }
+
+      .toolbar {
+        min-height: var(--toolbar-h);
+        padding: 4px 6px;
+      }
+
+      .tool {
+        height: 32px;
+      }
+
+      .board.players-2 {
+        grid-template: 1fr / repeat(2, minmax(0, 1fr));
+      }
+
+      .board.players-3 {
+        grid-template: 1fr / repeat(3, minmax(0, 1fr));
+      }
+
+      .board.players-4 {
+        grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+      }
+
+      .value {
+        font-size: clamp(48px, 18vmin, 150px);
+      }
+
+      .players-1 .value {
+        font-size: clamp(80px, 34vmin, 240px);
+      }
+
+      .players-3 .value,
+      .players-4 .value {
+        font-size: clamp(38px, 14vmin, 110px);
+      }
+
+      .counter-inner {
+        grid-template-columns: minmax(48px, 17%) 1fr minmax(48px, 17%);
+      }
+    }
+
+    @media (max-height: 520px) {
+      .quick-row {
+        display: none;
+      }
+
+      .name {
+        padding-block: 3px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .toolbar {
+        gap: 4px;
+      }
+
+      .tool {
+        padding-inline: 8px;
+        font-size: 13px;
+      }
+
+      .counter-inner {
+        grid-template-columns: minmax(46px, 17%) 1fr minmax(46px, 17%);
+      }
+
+      .quick-btn {
+        min-width: 34px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="toolbar" aria-label="控制栏">
+      <select id="playerCount" class="tool" aria-label="玩家数量">
+        <option value="1">1人</option>
+        <option value="2">2人</option>
+        <option value="3">3人</option>
+        <option value="4">4人</option>
+      </select>
+
+      <select id="preset" class="tool" aria-label="起始数值">
+        <option value="6">宝可梦奖赏 6</option>
+        <option value="10">10</option>
+        <option value="20">万智牌 20</option>
+        <option value="30">30</option>
+        <option value="40">指挥官 40</option>
+        <option value="60">60</option>
+        <option value="100">100</option>
+      </select>
+
+      <select id="step" class="tool" aria-label="主按钮步进">
+        <option value="1">步进 ±1</option>
+        <option value="2">步进 ±2</option>
+        <option value="5">步进 ±5</option>
+        <option value="10">步进 ±10</option>
+      </select>
+
+      <button id="flipBtn" class="tool" type="button">对坐：开</button>
+      <button id="resetBtn" class="tool danger" type="button">重置</button>
+      <button id="wakeBtn" class="tool primary" type="button">常亮</button>
+    </header>
+
+    <main id="board" class="board players-2 flip-table" aria-label="生命计数器"></main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "life-counter-static-v1";
+
+    const defaultState = {
+      count: 2,
+      preset: 20,
+      step: 1,
+      flip: true,
+      players: [
+        { name: "玩家 1", value: 20, accent: "#ef4444" },
+        { name: "玩家 2", value: 20, accent: "#3b82f6" },
+        { name: "玩家 3", value: 20, accent: "#22c55e" },
+        { name: "玩家 4", value: 20, accent: "#a855f7" }
+      ]
+    };
+
+    let state = loadState();
+
+    const board = document.getElementById("board");
+    const playerCountEl = document.getElementById("playerCount");
+    const presetEl = document.getElementById("preset");
+    const stepEl = document.getElementById("step");
+    const flipBtn = document.getElementById("flipBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const wakeBtn = document.getElementById("wakeBtn");
+
+    let repeatDelayTimer = null;
+    let repeatIntervalTimer = null;
+    let wakeLock = null;
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved || typeof saved !== "object") return structuredClone(defaultState);
+
+        const merged = {
+          ...structuredClone(defaultState),
+          ...saved,
+          players: structuredClone(defaultState.players)
+        };
+
+        if (Array.isArray(saved.players)) {
+          saved.players.slice(0, 4).forEach((player, index) => {
+            merged.players[index] = {
+              ...merged.players[index],
+              ...player
+            };
+          });
+        }
+
+        merged.count = clampNumber(Number(merged.count), 1, 4, 2);
+        merged.preset = Number.isFinite(Number(merged.preset)) ? Number(merged.preset) : 20;
+        merged.step = Number.isFinite(Number(merged.step)) ? Number(merged.step) : 1;
+        merged.flip = Boolean(merged.flip);
+
+        return merged;
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      if (!Number.isFinite(value)) return fallback;
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function render() {
+      board.className = `board players-${state.count}${state.flip ? " flip-table" : ""}`;
+
+      board.innerHTML = state.players
+        .slice(0, state.count)
+        .map((player, index) => {
+          const name = escapeHTML(player.name || `玩家 ${index + 1}`);
+          const value = Number(player.value) || 0;
+          const accent = player.accent || "#3b82f6";
+
+          return `
+            <section class="counter" style="--accent: ${accent};" aria-label="${name}">
+              <span class="badge">P${index + 1}</span>
+
+              <div class="counter-inner">
+                <button
+                  class="delta-big"
+                  type="button"
+                  data-index="${index}"
+                  data-delta="${-state.step}"
+                  aria-label="${name} 减少 ${state.step}"
+                >−</button>
+
+                <div class="center">
+                  <input
+                    class="name"
+                    data-index="${index}"
+                    value="${name}"
+                    aria-label="玩家名称"
+                    maxlength="16"
+                  />
+
+                  <div class="value" aria-live="polite">${value}</div>
+
+                  <div class="quick-row" aria-label="快速加减">
+                    <button class="quick-btn" type="button" data-index="${index}" data-delta="-5">−5</button>
+                    <button class="quick-btn" type="button" data-index="${index}" data-delta="-1">−1</button>
+                    <button class="quick-btn" type="button" data-index="${index}" data-delta="1">+1</button>
+                    <button class="quick-btn" type="button" data-index="${index}" data-delta="5">+5</button>
+                  </div>
+                </div>
+
+                <button
+                  class="delta-big"
+                  type="button"
+                  data-index="${index}"
+                  data-delta="${state.step}"
+                  aria-label="${name} 增加 ${state.step}"
+                >+</button>
+              </div>
+            </section>
+          `;
+        })
+        .join("");
+
+      syncControls();
+      saveState();
+    }
+
+    function syncControls() {
+      playerCountEl.value = String(state.count);
+      presetEl.value = String(state.preset);
+      stepEl.value = String(state.step);
+      flipBtn.textContent = `对坐：${state.flip ? "开" : "关"}`;
+      wakeBtn.textContent = wakeLock ? "常亮中" : "常亮";
+    }
+
+    function changeValue(index, delta) {
+      const player = state.players[index];
+      if (!player) return;
+
+      player.value = Number(player.value || 0) + Number(delta || 0);
+
+      const counter = board.querySelectorAll(".counter")[index];
+      const valueEl = counter?.querySelector(".value");
+      if (valueEl) valueEl.textContent = player.value;
+
+      saveState();
+    }
+
+    function clearRepeatTimers() {
+      if (repeatDelayTimer) {
+        clearTimeout(repeatDelayTimer);
+        repeatDelayTimer = null;
+      }
+
+      if (repeatIntervalTimer) {
+        clearInterval(repeatIntervalTimer);
+        repeatIntervalTimer = null;
+      }
+    }
+
+    board.addEventListener("pointerdown", (event) => {
+      const button = event.target.closest("[data-delta]");
+      if (!button) return;
+
+      event.preventDefault();
+
+      const index = Number(button.dataset.index);
+      const delta = Number(button.dataset.delta);
+
+      changeValue(index, delta);
+
+      repeatDelayTimer = setTimeout(() => {
+        repeatIntervalTimer = setInterval(() => {
+          changeValue(index, delta);
+        }, 75);
+      }, 360);
+
+      try {
+        button.setPointerCapture(event.pointerId);
+      } catch {
+        // 某些浏览器可能不支持，忽略即可。
+      }
+    });
+
+    window.addEventListener("pointerup", clearRepeatTimers);
+    window.addEventListener("pointercancel", clearRepeatTimers);
+    window.addEventListener("blur", clearRepeatTimers);
+
+    board.addEventListener("input", (event) => {
+      const input = event.target.closest(".name");
+      if (!input) return;
+
+      const index = Number(input.dataset.index);
+      if (!state.players[index]) return;
+
+      state.players[index].name = input.value.trim() || `玩家 ${index + 1}`;
+      saveState();
+    });
+
+    playerCountEl.addEventListener("change", () => {
+      state.count = clampNumber(Number(playerCountEl.value), 1, 4, 2);
+      render();
+    });
+
+    presetEl.addEventListener("change", () => {
+      state.preset = Number(presetEl.value);
+      saveState();
+      syncControls();
+    });
+
+    stepEl.addEventListener("change", () => {
+      state.step = Number(stepEl.value);
+      render();
+    });
+
+    flipBtn.addEventListener("click", () => {
+      state.flip = !state.flip;
+      render();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      const ok = confirm(`将当前 ${state.count} 名玩家全部重置为 ${state.preset}？`);
+      if (!ok) return;
+
+      for (let i = 0; i < state.count; i++) {
+        state.players[i].value = state.preset;
+      }
+
+      render();
+    });
+
+    async function requestWakeLock() {
+      if (!("wakeLock" in navigator)) {
+        alert("当前浏览器不支持屏幕常亮 Wake Lock。");
+        return;
+      }
+
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+
+        wakeLock.addEventListener("release", () => {
+          wakeLock = null;
+          syncControls();
+        });
+
+        syncControls();
+      } catch {
+        alert("无法开启屏幕常亮。请确认页面在 HTTPS / PWA 环境中运行。");
+      }
+    }
+
+    async function releaseWakeLock() {
+      if (!wakeLock) return;
+
+      try {
+        await wakeLock.release();
+      } finally {
+        wakeLock = null;
+        syncControls();
+      }
+    }
+
+    wakeBtn.addEventListener("click", async () => {
+      if (wakeLock) {
+        await releaseWakeLock();
+      } else {
+        await requestWakeLock();
+      }
+    });
+
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState === "visible" && wakeLock) {
+        await requestWakeLock();
+      }
+    });
+
+    render();
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+          .then(function () {
+            console.log("Service Worker 注册成功");
+          })
+          .catch(function (error) {
+            console.warn("Service Worker 注册失败", error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

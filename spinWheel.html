@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Spin Wheel 转盘</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg-2: #111827;
+            --card: rgba(255, 255, 255, 0.08);
+            --card-2: rgba(255, 255, 255, 0.12);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-2: #0284c7;
+            --danger: #fb7185;
+            --danger-2: #e11d48;
+            --ok: #22c55e;
+            --border: rgba(255, 255, 255, 0.12);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            --radius: 22px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+            --safe-left: env(safe-area-inset-left);
+            --safe-right: env(safe-area-inset-right);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.28), transparent 34%),
+                radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.22), transparent 32%),
+                linear-gradient(135deg, #020617, #0f172a 50%, #111827);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        body {
+            height: 100svh;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .app {
+            width: 100%;
+            height: 100svh;
+            padding:
+                calc(10px + var(--safe-top)) calc(12px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(12px + var(--safe-left));
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .topbar {
+            flex: 0 0 auto;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 4px;
+        }
+
+        .brand {
+            min-width: 0;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(20px, 5vw, 30px);
+            line-height: 1.1;
+            letter-spacing: -0.04em;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        main {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .home-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .home-head h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .home-content {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: 2px;
+        }
+
+        .wheel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            padding-bottom: 8px;
+        }
+
+        .wheel-card {
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 38px rgba(0, 0, 0, 0.2);
+        }
+
+        .wheel-card h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .wheel-card p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .card-actions,
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            min-height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            color: white;
+            background: var(--card-2);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #00111f;
+            font-weight: 700;
+        }
+
+        .btn.danger {
+            background: rgba(251, 113, 133, 0.16);
+            border-color: rgba(251, 113, 133, 0.4);
+            color: #fecdd3;
+        }
+
+        .btn.ghost {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn.full {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .empty {
+            height: 100%;
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty strong {
+            display: block;
+            color: var(--text);
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        /* Editor */
+        .editor-wrap {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            place-items: center;
+            overflow: auto;
+        }
+
+        .editor-card {
+            width: min(720px, 100%);
+            padding: 16px;
+        }
+
+        .editor-card h2 {
+            margin: 0 0 14px;
+            font-size: 22px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .input,
+        .textarea {
+            width: 100%;
+            color: var(--text);
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            outline: none;
+            padding: 12px 14px;
+        }
+
+        .input:focus,
+        .textarea:focus {
+            border-color: rgba(56, 189, 248, 0.75);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+        }
+
+        .textarea {
+            min-height: 260px;
+            resize: vertical;
+            line-height: 1.55;
+        }
+
+        .hint {
+            margin: -6px 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* Play */
+        .play-view {
+            gap: 10px;
+        }
+
+        .play-toolbar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 44px;
+        }
+
+        .play-title {
+            min-width: 0;
+        }
+
+        .play-title h2 {
+            margin: 0;
+            font-size: clamp(18px, 4.6vw, 24px);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 54vw;
+        }
+
+        .play-title p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .play-core {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: minmax(0, 1fr) auto;
+            gap: 10px;
+        }
+
+        .wheel-area {
+            min-height: 0;
+            display: grid;
+            place-items: center;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        .wheel-stage {
+            width: min(94vw, 560px, calc(100svh - 258px));
+            aspect-ratio: 1 / 1;
+            max-height: 100%;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        canvas#wheelCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 50%;
+            touch-action: none;
+            user-select: none;
+            filter: drop-shadow(0 24px 42px rgba(0, 0, 0, 0.42));
+        }
+
+        .side-panel {
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            align-content: start;
+        }
+
+        .result-box {
+            min-height: 62px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            display: grid;
+            gap: 2px;
+            align-content: center;
+        }
+
+        .result-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .result-text {
+            font-size: clamp(20px, 5vw, 30px);
+            font-weight: 800;
+            line-height: 1.15;
+            word-break: break-word;
+        }
+
+        .mini-tip {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .items-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 92px;
+            overflow: auto;
+            padding-right: 2px;
+        }
+
+        .chip {
+            max-width: 100%;
+            padding: 6px 9px;
+            border-radius: 999px;
+            color: white;
+            font-size: 12px;
+            line-height: 1;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        @media (orientation: landscape) and (max-height: 560px) {
+            .app {
+                gap: 6px;
+                padding-top: calc(6px + var(--safe-top));
+                padding-bottom: calc(6px + var(--safe-bottom));
+            }
+
+            .topbar {
+                min-height: 38px;
+                padding: 2px 4px;
+            }
+
+            .brand h1 {
+                font-size: 20px;
+            }
+
+            .brand p {
+                display: none;
+            }
+
+            .play-core {
+                grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+                grid-template-rows: minmax(0, 1fr);
+            }
+
+            .wheel-stage {
+                width: min(64svh, 54vw, 540px);
+            }
+
+            .side-panel {
+                max-height: 100%;
+                overflow: auto;
+            }
+
+            .result-box {
+                min-height: 56px;
+            }
+
+            .items-preview {
+                max-height: 118px;
+            }
+
+            .play-title h2 {
+                max-width: 38vw;
+            }
+        }
+
+        @media (min-width: 860px) {
+            .play-core {
+                grid-template-columns: minmax(0, 1fr) 340px;
+                grid-template-rows: minmax(0, 1fr);
+            }
+
+            .wheel-stage {
+                width: min(66svh, 58vw, 620px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <h1>Spin Wheel</h1>
+                <p>本地保存 · 支持竖屏 / 横屏 · 滑动旋转</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Home -->
+            <section id="homeView" class="view active">
+                <div class="home-head">
+                    <h2>我的转盘</h2>
+                    <button id="newWheelBtn" class="btn primary">＋ 新建转盘</button>
+                </div>
+
+                <div class="home-content">
+                    <div id="wheelGrid" class="wheel-grid"></div>
+                    <div id="emptyHome" class="empty" hidden>
+                        <div>
+                            <strong>还没有转盘</strong>
+                            <span>点击“新建转盘”开始创建。</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Editor -->
+            <section id="editView" class="view">
+                <div class="editor-wrap">
+                    <form id="editorForm" class="editor-card panel">
+                        <h2 id="editorTitle">新建转盘</h2>
+
+                        <div class="field">
+                            <label for="wheelNameInput">转盘名称</label>
+                            <input id="wheelNameInput" class="input" type="text" maxlength="40"
+                                placeholder="例如：今晚吃什么" />
+                        </div>
+
+                        <div class="field">
+                            <label for="wheelItemsInput">选项内容，每行一个</label>
+                            <textarea id="wheelItemsInput" class="textarea"
+                                placeholder="火锅&#10;烧烤&#10;寿司&#10;汉堡&#10;拉面"></textarea>
+                        </div>
+
+                        <p class="hint">至少需要 2 个选项。保存后会自动生成彩色转盘。</p>
+
+                        <div class="row-actions">
+                            <button type="submit" class="btn primary">保存</button>
+                            <button type="button" id="cancelEditBtn" class="btn ghost">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Play -->
+            <section id="playView" class="view play-view">
+                <div class="play-toolbar">
+                    <div class="play-title">
+                        <h2 id="playWheelName">转盘</h2>
+                        <p id="playWheelMeta">滑动转盘开始旋转</p>
+                    </div>
+
+                    <div class="row-actions">
+                        <button id="backHomeBtn" class="btn ghost">返回</button>
+                        <button id="editCurrentBtn" class="btn ghost">编辑</button>
+                    </div>
+                </div>
+
+                <div class="play-core">
+                    <div class="wheel-area panel">
+                        <div class="wheel-stage">
+                            <canvas id="wheelCanvas" aria-label="转盘"></canvas>
+                        </div>
+                    </div>
+
+                    <aside class="side-panel panel">
+                        <div class="result-box">
+                            <div class="result-label">结果</div>
+                            <div id="resultText" class="result-text">滑动转盘</div>
+                        </div>
+
+                        <button id="randomSpinBtn" class="btn primary full">随机旋转</button>
+
+                        <div class="mini-tip">
+                            操作方式：按住转盘拖动，滑动越快旋转越快，松手后自动减速停止。
+                        </div>
+
+                        <div id="itemsPreview" class="items-preview"></div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        "use strict";
+
+        const STORAGE_KEY = "spin-wheel-static-page-v1";
+        const TAU = Math.PI * 2;
+        const POINTER_ANGLE = -Math.PI / 2;
+
+        const $ = (selector) => document.querySelector(selector);
+
+        const dom = {
+            homeView: $("#homeView"),
+            editView: $("#editView"),
+            playView: $("#playView"),
+
+            newWheelBtn: $("#newWheelBtn"),
+            wheelGrid: $("#wheelGrid"),
+            emptyHome: $("#emptyHome"),
+
+            editorForm: $("#editorForm"),
+            editorTitle: $("#editorTitle"),
+            wheelNameInput: $("#wheelNameInput"),
+            wheelItemsInput: $("#wheelItemsInput"),
+            cancelEditBtn: $("#cancelEditBtn"),
+
+            playWheelName: $("#playWheelName"),
+            playWheelMeta: $("#playWheelMeta"),
+            backHomeBtn: $("#backHomeBtn"),
+            editCurrentBtn: $("#editCurrentBtn"),
+            resultText: $("#resultText"),
+            randomSpinBtn: $("#randomSpinBtn"),
+            itemsPreview: $("#itemsPreview"),
+
+            canvas: $("#wheelCanvas")
+        };
+
+        const ctx = dom.canvas.getContext("2d");
+
+        const state = {
+            wheels: [],
+            editingId: null,
+            currentId: null,
+
+            rotation: 0,
+            selectedIndex: null,
+
+            dragging: false,
+            pointerId: null,
+            lastAngle: 0,
+            lastTime: 0,
+            angularVelocity: 0,
+
+            spinning: false,
+            rafId: null,
+            lastFrameTime: 0,
+
+            canvasW: 0,
+            canvasH: 0,
+            dpr: 1
+        };
+
+        function uid() {
+            return "wheel_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function mod(value, m) {
+            return ((value % m) + m) % m;
+        }
+
+        function angleDelta(current, previous) {
+            return Math.atan2(Math.sin(current - previous), Math.cos(current - previous));
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function colorFor(index, total) {
+            const hue = Math.round((index * 360) / Math.max(total, 1) + 18) % 360;
+            return `hsl(${hue} 78% 56%)`;
+        }
+
+        function createItemsFromLines(text) {
+            const labels = text
+                .split(/\r?\n/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+
+            return labels.map((label, index) => ({
+                label,
+                color: colorFor(index, labels.length)
+            }));
+        }
+
+        function normalizeWheel(raw) {
+            if (!raw || typeof raw !== "object") return null;
+
+            const name = String(raw.name || "未命名转盘").trim() || "未命名转盘";
+            const rawItems = Array.isArray(raw.items) ? raw.items : [];
+
+            const labels = rawItems
+                .map((item) => {
+                    if (typeof item === "string") return item.trim();
+                    if (item && typeof item === "object") return String(item.label || "").trim();
+                    return "";
+                })
+                .filter(Boolean);
+
+            if (labels.length < 2) return null;
+
+            return {
+                id: raw.id || uid(),
+                name,
+                items: labels.map((label, index) => ({
+                    label,
+                    color:
+                        rawItems[index] && typeof rawItems[index] === "object" && rawItems[index].color
+                            ? rawItems[index].color
+                            : colorFor(index, labels.length)
+                })),
+                updatedAt: raw.updatedAt || Date.now()
+            };
+        }
+
+        function loadWheels() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        state.wheels = parsed.map(normalizeWheel).filter(Boolean);
+                    }
+                }
+            } catch (err) {
+                console.warn("读取转盘数据失败：", err);
+            }
+
+            if (state.wheels.length === 0) {
+                state.wheels = [
+                    {
+                        id: uid(),
+                        name: "今晚吃什么",
+                        items: createItemsFromLines("火锅\n烧烤\n寿司\n拉面\n汉堡\n披萨\n麻辣烫\n炒饭"),
+                        updatedAt: Date.now()
+                    },
+                    {
+                        id: uid(),
+                        name: "周末做什么",
+                        items: createItemsFromLines("看电影\n爬山\n逛街\n打游戏\n做饭\n读书\n运动\n睡懒觉"),
+                        updatedAt: Date.now()
+                    }
+                ];
+                saveWheels();
+            }
+        }
+
+        function saveWheels() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.wheels));
+            } catch (err) {
+                console.warn("保存转盘数据失败：", err);
+            }
+        }
+
+        function getCurrentWheel() {
+            return state.wheels.find((wheel) => wheel.id === state.currentId) || null;
+        }
+
+        function getWheelById(id) {
+            return state.wheels.find((wheel) => wheel.id === id) || null;
+        }
+
+        function showView(name) {
+            dom.homeView.classList.toggle("active", name === "home");
+            dom.editView.classList.toggle("active", name === "edit");
+            dom.playView.classList.toggle("active", name === "play");
+
+            if (name === "play") {
+                requestAnimationFrame(() => {
+                    resizeCanvas();
+                    drawWheel();
+                });
+            }
+        }
+
+        function renderHome() {
+            const wheels = [...state.wheels].sort((a, b) => b.updatedAt - a.updatedAt);
+
+            dom.emptyHome.hidden = wheels.length !== 0;
+            dom.wheelGrid.innerHTML = wheels
+                .map((wheel) => {
+                    const preview = wheel.items.slice(0, 4).map((item) => item.label).join("、");
+                    return `
+            <article class="wheel-card">
+              <h3>${escapeHtml(wheel.name)}</h3>
+              <p>${wheel.items.length} 个选项${preview ? "： " + escapeHtml(preview) : ""}</p>
+              <div class="card-actions">
+                <button class="btn primary" data-action="open" data-id="${wheel.id}">进入</button>
+                <button class="btn ghost" data-action="edit" data-id="${wheel.id}">编辑</button>
+                <button class="btn danger" data-action="delete" data-id="${wheel.id}">删除</button>
+              </div>
+            </article>
+          `;
+                })
+                .join("");
+        }
+
+        function openEditor(id = null) {
+            state.editingId = id;
+
+            if (id) {
+                const wheel = getWheelById(id);
+                if (!wheel) return;
+
+                dom.editorTitle.textContent = "编辑转盘";
+                dom.wheelNameInput.value = wheel.name;
+                dom.wheelItemsInput.value = wheel.items.map((item) => item.label).join("\n");
+            } else {
+                dom.editorTitle.textContent = "新建转盘";
+                dom.wheelNameInput.value = "";
+                dom.wheelItemsInput.value = "";
+            }
+
+            showView("edit");
+            setTimeout(() => dom.wheelNameInput.focus(), 80);
+        }
+
+        function saveEditor() {
+            const name = dom.wheelNameInput.value.trim() || "未命名转盘";
+            const items = createItemsFromLines(dom.wheelItemsInput.value);
+
+            if (items.length < 2) {
+                alert("请至少输入 2 个选项。");
+                return;
+            }
+
+            if (state.editingId) {
+                const wheel = getWheelById(state.editingId);
+                if (!wheel) return;
+
+                wheel.name = name;
+                wheel.items = items;
+                wheel.updatedAt = Date.now();
+
+                if (state.currentId === wheel.id) {
+                    updatePlayHeader();
+                    renderItemsPreview();
+                    state.selectedIndex = null;
+                    dom.resultText.textContent = "滑动转盘";
+                    drawWheel();
+                }
+            } else {
+                state.wheels.push({
+                    id: uid(),
+                    name,
+                    items,
+                    updatedAt: Date.now()
+                });
+            }
+
+            saveWheels();
+            renderHome();
+            showView("home");
+        }
+
+        function deleteWheel(id) {
+            const wheel = getWheelById(id);
+            if (!wheel) return;
+
+            const ok = confirm(`确定删除「${wheel.name}」吗？此操作无法撤销。`);
+            if (!ok) return;
+
+            state.wheels = state.wheels.filter((item) => item.id !== id);
+
+            if (state.currentId === id) {
+                stopSpin(false);
+                state.currentId = null;
+            }
+
+            saveWheels();
+            renderHome();
+            showView("home");
+        }
+
+        function openWheel(id) {
+            const wheel = getWheelById(id);
+            if (!wheel) return;
+
+            stopSpin(false);
+
+            state.currentId = id;
+            state.rotation = -Math.PI / 2;
+            state.selectedIndex = null;
+            state.angularVelocity = 0;
+
+            updatePlayHeader();
+            renderItemsPreview();
+            dom.resultText.textContent = "滑动转盘";
+
+            showView("play");
+        }
+
+        function updatePlayHeader() {
+            const wheel = getCurrentWheel();
+            if (!wheel) return;
+
+            dom.playWheelName.textContent = wheel.name;
+            dom.playWheelMeta.textContent = `${wheel.items.length} 个选项 · 滑动越快旋转越快`;
+        }
+
+        function renderItemsPreview() {
+            const wheel = getCurrentWheel();
+            if (!wheel) return;
+
+            dom.itemsPreview.innerHTML = wheel.items
+                .map(
+                    (item) =>
+                        `<span class="chip" style="background:${item.color}">${escapeHtml(item.label)}</span>`
+                )
+                .join("");
+        }
+
+        function resizeCanvas() {
+            const rect = dom.canvas.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            const width = Math.max(1, Math.round(rect.width));
+            const height = Math.max(1, Math.round(rect.height));
+
+            state.canvasW = width;
+            state.canvasH = height;
+            state.dpr = dpr;
+
+            const nextWidth = Math.round(width * dpr);
+            const nextHeight = Math.round(height * dpr);
+
+            if (dom.canvas.width !== nextWidth || dom.canvas.height !== nextHeight) {
+                dom.canvas.width = nextWidth;
+                dom.canvas.height = nextHeight;
+            }
+        }
+
+        function drawWheel() {
+            const wheel = getCurrentWheel();
+            resizeCanvas();
+
+            const w = state.canvasW;
+            const h = state.canvasH;
+            const dpr = state.dpr;
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, w, h);
+
+            if (!wheel || wheel.items.length === 0) return;
+
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = Math.min(w, h) * 0.455;
+            const innerRadius = Math.max(28, radius * 0.13);
+            const segment = TAU / wheel.items.length;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            for (let i = 0; i < wheel.items.length; i++) {
+                const item = wheel.items[i];
+                const start = state.rotation + i * segment;
+                const end = start + segment;
+                const mid = start + segment / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                ctx.lineWidth = i === state.selectedIndex ? 4 : 1;
+                ctx.strokeStyle =
+                    i === state.selectedIndex ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.28)";
+                ctx.stroke();
+
+                ctx.save();
+                ctx.rotate(mid);
+
+                const label = item.label.length > 18 ? item.label.slice(0, 17) + "…" : item.label;
+                const fontSize = clamp(radius / 12, 11, 18);
+
+                ctx.font = `700 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+                ctx.fillStyle = "white";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0,0,0,0.45)";
+                ctx.shadowBlur = 3;
+                ctx.shadowOffsetY = 1;
+
+                const normalizedMid = mod(mid, TAU);
+
+                if (normalizedMid > Math.PI / 2 && normalizedMid < Math.PI * 1.5) {
+                    ctx.rotate(Math.PI);
+                    ctx.textAlign = "left";
+                    ctx.fillText(label, -radius + 16, 0, radius * 0.72);
+                } else {
+                    ctx.textAlign = "right";
+                    ctx.fillText(label, radius - 16, 0, radius * 0.72);
+                }
+
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(0, 0, innerRadius, 0, TAU);
+            ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "rgba(255,255,255,0.45)";
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.max(8, innerRadius * 0.34), 0, TAU);
+            ctx.fillStyle = "#f8fafc";
+            ctx.fill();
+
+            ctx.restore();
+
+            drawPointer(cx, cy, radius);
+        }
+
+        function drawPointer(cx, cy, radius) {
+            const tipY = cy - radius + 8;
+            const baseY = cy - radius - 22;
+
+            ctx.save();
+
+            ctx.beginPath();
+            ctx.moveTo(cx, tipY);
+            ctx.lineTo(cx - 17, baseY);
+            ctx.lineTo(cx + 17, baseY);
+            ctx.closePath();
+
+            ctx.fillStyle = "#f8fafc";
+            ctx.shadowColor = "rgba(0,0,0,0.45)";
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 4;
+            ctx.fill();
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(15,23,42,0.55)";
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function getSelectedIndex() {
+            const wheel = getCurrentWheel();
+            if (!wheel || wheel.items.length === 0) return -1;
+
+            const segment = TAU / wheel.items.length;
+            const localAngle = mod(POINTER_ANGLE - state.rotation, TAU);
+            return Math.floor(localAngle / segment) % wheel.items.length;
+        }
+
+        function showCurrentResult(prefix = "当前指向") {
+            const wheel = getCurrentWheel();
+            if (!wheel) return;
+
+            const index = getSelectedIndex();
+            if (index < 0) return;
+
+            state.selectedIndex = index;
+            dom.resultText.textContent = `${prefix}：${wheel.items[index].label}`;
+            drawWheel();
+        }
+
+        function getPointerAngle(event) {
+            const rect = dom.canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            return Math.atan2(y - rect.height / 2, x - rect.width / 2);
+        }
+
+        function stopSpin(updateResult) {
+            if (state.rafId) {
+                cancelAnimationFrame(state.rafId);
+                state.rafId = null;
+            }
+
+            state.spinning = false;
+            state.lastFrameTime = 0;
+            dom.randomSpinBtn.disabled = false;
+
+            if (updateResult) {
+                showCurrentResult("结果");
+            }
+        }
+
+        function startSpin(initialVelocity) {
+            stopSpin(false);
+
+            const sign = initialVelocity >= 0 ? 1 : -1;
+            const absVelocity = Math.abs(initialVelocity);
+
+            state.angularVelocity = sign * clamp(absVelocity, 3.2, 22);
+            state.spinning = true;
+            state.selectedIndex = null;
+            state.lastFrameTime = 0;
+
+            dom.resultText.textContent = "旋转中…";
+            dom.randomSpinBtn.disabled = true;
+
+            const friction = 0.92;
+
+            function frame(timestamp) {
+                if (!state.spinning) return;
+
+                if (!state.lastFrameTime) {
+                    state.lastFrameTime = timestamp;
+                }
+
+                const dt = Math.min(0.04, (timestamp - state.lastFrameTime) / 1000);
+                state.lastFrameTime = timestamp;
+
+                state.rotation += state.angularVelocity * dt;
+                state.angularVelocity *= Math.exp(-friction * dt);
+
+                drawWheel();
+
+                if (Math.abs(state.angularVelocity) < 0.085) {
+                    stopSpin(true);
+                    return;
+                }
+
+                state.rafId = requestAnimationFrame(frame);
+            }
+
+            state.rafId = requestAnimationFrame(frame);
+        }
+
+        function onPointerDown(event) {
+            const wheel = getCurrentWheel();
+            if (!wheel) return;
+
+            event.preventDefault();
+
+            stopSpin(false);
+
+            state.dragging = true;
+            state.pointerId = event.pointerId;
+            state.lastAngle = getPointerAngle(event);
+            state.lastTime = performance.now();
+            state.angularVelocity = 0;
+            state.selectedIndex = null;
+
+            dom.canvas.setPointerCapture(event.pointerId);
+            dom.resultText.textContent = "松手开始旋转";
+            drawWheel();
+        }
+
+        function onPointerMove(event) {
+            if (!state.dragging || event.pointerId !== state.pointerId) return;
+
+            event.preventDefault();
+
+            const now = performance.now();
+            const currentAngle = getPointerAngle(event);
+            const delta = angleDelta(currentAngle, state.lastAngle);
+            const dt = Math.max(8, now - state.lastTime) / 1000;
+
+            state.rotation += delta;
+
+            const instantVelocity = delta / dt;
+            state.angularVelocity = state.angularVelocity * 0.62 + instantVelocity * 0.38;
+
+            state.lastAngle = currentAngle;
+            state.lastTime = now;
+
+            drawWheel();
+        }
+
+        function onPointerUp(event) {
+            if (!state.dragging || event.pointerId !== state.pointerId) return;
+
+            event.preventDefault();
+
+            state.dragging = false;
+
+            try {
+                dom.canvas.releasePointerCapture(event.pointerId);
+            } catch (_) { }
+
+            const velocity = state.angularVelocity;
+            state.pointerId = null;
+
+            if (Math.abs(velocity) > 0.85) {
+                startSpin(velocity * 1.45);
+            } else {
+                showCurrentResult("当前指向");
+            }
+        }
+
+        function bindEvents() {
+            dom.newWheelBtn.addEventListener("click", () => openEditor());
+
+            dom.wheelGrid.addEventListener("click", (event) => {
+                const button = event.target.closest("button[data-action]");
+                if (!button) return;
+
+                const {action, id} = button.dataset;
+
+                if (action === "open") openWheel(id);
+                if (action === "edit") openEditor(id);
+                if (action === "delete") deleteWheel(id);
+            });
+
+            dom.editorForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                saveEditor();
+            });
+
+            dom.cancelEditBtn.addEventListener("click", () => {
+                state.editingId = null;
+                renderHome();
+                showView("home");
+            });
+
+            dom.backHomeBtn.addEventListener("click", () => {
+                stopSpin(false);
+                renderHome();
+                showView("home");
+            });
+
+            dom.editCurrentBtn.addEventListener("click", () => {
+                const wheel = getCurrentWheel();
+                if (wheel) openEditor(wheel.id);
+            });
+
+            dom.randomSpinBtn.addEventListener("click", () => {
+                const direction = Math.random() < 0.5 ? -1 : 1;
+                const velocity = direction * (13 + Math.random() * 7);
+                startSpin(velocity);
+            });
+
+            dom.canvas.addEventListener("pointerdown", onPointerDown, {passive: false});
+            dom.canvas.addEventListener("pointermove", onPointerMove, {passive: false});
+            dom.canvas.addEventListener("pointerup", onPointerUp, {passive: false});
+            dom.canvas.addEventListener("pointercancel", onPointerUp, {passive: false});
+
+            window.addEventListener("resize", () => {
+                requestAnimationFrame(() => {
+                    resizeCanvas();
+                    drawWheel();
+                });
+            });
+
+            window.addEventListener("orientationchange", () => {
+                setTimeout(() => {
+                    resizeCanvas();
+                    drawWheel();
+                }, 180);
+            });
+
+            if ("ResizeObserver" in window) {
+                const observer = new ResizeObserver(() => {
+                    resizeCanvas();
+                    drawWheel();
+                });
+                observer.observe(dom.canvas);
+            }
+        }
+
+        function init() {
+            loadWheels();
+            bindEvents();
+            renderHome();
+            showView("home");
+        }
+
+        init();
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("./sw.js")
+                    .then(function () {
+                        console.log("Service Worker 注册成功");
+                    })
+                    .catch(function (error) {
+                        console.warn("Service Worker 注册失败", error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

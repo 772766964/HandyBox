@@ -1,35 +1,45 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Random Pick - 随机抽签工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Random Pick</title>
   <style>
     :root {
-      --bg: #f5f7fb;
+      --bg: #f6f7fb;
       --card: #ffffff;
-      --text: #1f2937;
+      --text: #111827;
       --muted: #6b7280;
       --border: #e5e7eb;
       --primary: #2563eb;
       --primary-dark: #1d4ed8;
       --danger: #dc2626;
-      --danger-dark: #b91c1c;
       --success: #16a34a;
       --warning: #f59e0b;
-      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
       --radius: 18px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      overscroll-behavior: none;
     }
 
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      min-height: 100dvh;
     }
 
     button,
@@ -40,253 +50,48 @@
     }
 
     button {
-      cursor: pointer;
-      border: none;
-      border-radius: 12px;
+      border: 0;
+      border-radius: 14px;
       padding: 10px 14px;
-      background: #e5e7eb;
-      color: #111827;
+      background: #eef0f4;
+      color: var(--text);
+      cursor: pointer;
       transition: 0.15s ease;
-    }
-
-    button:hover {
-      filter: brightness(0.96);
+      min-height: 42px;
     }
 
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
     .btn-primary {
       background: var(--primary);
-      color: white;
+      color: #fff;
     }
 
-    .btn-primary:hover {
+    .btn-primary:active {
       background: var(--primary-dark);
     }
 
     .btn-danger {
       background: var(--danger);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: var(--danger-dark);
+      color: #fff;
     }
 
     .btn-success {
       background: var(--success);
-      color: white;
+      color: #fff;
     }
 
     .btn-warning {
       background: var(--warning);
-      color: white;
+      color: #fff;
     }
 
-    .btn-light {
-      background: #f3f4f6;
-      color: #111827;
-    }
-
-    .btn-block {
-      width: 100%;
-    }
-
-    .app-shell {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      background: rgba(245, 247, 251, 0.92);
-      backdrop-filter: blur(10px);
-      padding: 12px 0;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      color: white;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      box-shadow: var(--shadow);
-    }
-
-    .brand h1 {
-      font-size: 22px;
-      margin: 0;
-      line-height: 1.1;
-    }
-
-    .brand p {
-      margin: 3px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .cards-grid {
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .card-title-wrap {
-      min-width: 0;
-    }
-
-    .card-title {
-      margin: 0;
-      font-size: 18px;
-      word-break: break-word;
-    }
-
-    .card-desc {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 5px;
-      word-break: break-word;
-    }
-
-    .color-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      flex: 0 0 auto;
-      margin-top: 4px;
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      border-radius: 999px;
-      background: #f3f4f6;
-      color: #374151;
-      padding: 5px 9px;
-      font-size: 12px;
-    }
-
-    .tag-blue {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .tag-green {
-      background: #dcfce7;
-      color: #15803d;
-    }
-
-    .tag-yellow {
-      background: #fef3c7;
-      color: #b45309;
-    }
-
-    .tag-red {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .empty {
-      text-align: center;
-      padding: 48px 20px;
-      color: var(--muted);
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    .empty h2 {
-      color: var(--text);
-      margin-top: 0;
-    }
-
-    .form-card {
-      max-width: 920px;
-      margin: 0 auto;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-bottom: 14px;
-    }
-
-    .field label {
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .field small {
-      color: var(--muted);
-      line-height: 1.4;
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary);
+      padding-inline: 8px;
     }
 
     input,
@@ -294,11 +99,17 @@
     select {
       width: 100%;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 11px 12px;
-      background: white;
-      color: var(--text);
       outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.5;
     }
 
     input:focus,
@@ -308,164 +119,532 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
-    textarea {
-      min-height: 220px;
-      resize: vertical;
-      line-height: 1.5;
+    .app {
+      width: 100%;
+      min-height: 100dvh;
+      padding: calc(10px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
     }
 
-    .section-title {
-      margin: 18px 0 10px;
-      font-size: 16px;
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
     }
 
-    .draw-layout {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 14px;
-      align-items: start;
-    }
-
-    .big-result {
-      min-height: 260px;
+    .topbar {
       display: flex;
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      border-radius: var(--radius);
-      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
-      border: 1px solid var(--border);
-      padding: 24px;
-      overflow: auto;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
-    .result-name {
-      font-size: clamp(36px, 8vw, 84px);
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #fff;
       font-weight: 900;
-      color: var(--primary);
-      word-break: break-word;
-      line-height: 1.1;
-      animation: pop 0.25s ease;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      box-shadow: var(--shadow);
     }
 
-    .result-list {
-      width: 100%;
-      display: grid;
-      gap: 10px;
-      text-align: left;
+    .brand-title {
+      min-width: 0;
     }
 
-    .winner-item {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary);
-      animation: pop 0.25s ease;
-    }
-
-    .group-result {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px;
-      width: 100%;
-      text-align: left;
-    }
-
-    .group-box {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 13px;
-      animation: pop 0.25s ease;
-    }
-
-    .group-box h3 {
-      margin: 0 0 8px;
-      color: var(--primary);
-      font-size: 16px;
-    }
-
-    .group-box p {
+    .brand h1 {
       margin: 0;
-      line-height: 1.6;
-      color: #374151;
+      font-size: 18px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .history-list {
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 56vw;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn {
+      width: 42px;
+      padding: 0;
       display: grid;
-      gap: 12px;
+      place-items: center;
+      font-size: 20px;
     }
 
-    .history-item {
+    .card {
+      background: var(--card);
       border: 1px solid var(--border);
-      background: white;
-      border-radius: 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 14px;
     }
 
-    .history-head {
+    .home-tools {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 10px;
+    }
+
+    .pick-card {
       display: flex;
-      justify-content: space-between;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pick-card-head {
+      display: flex;
       align-items: flex-start;
-      margin-bottom: 8px;
+      justify-content: space-between;
+      gap: 8px;
     }
 
-    .history-time {
-      font-weight: 800;
-    }
-
-    .history-body {
-      color: #374151;
-      line-height: 1.65;
-      white-space: pre-wrap;
+    .pick-card-title {
+      margin: 0;
+      font-size: 17px;
       word-break: break-word;
     }
 
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translateX(-50%);
-      background: #111827;
-      color: white;
-      padding: 11px 15px;
-      border-radius: 999px;
-      box-shadow: var(--shadow);
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.2s ease;
-      max-width: calc(100vw - 32px);
-      text-align: center;
+    .pick-card-desc {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      word-break: break-word;
     }
 
-    .toast.show {
-      opacity: 1;
-      bottom: 34px;
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      margin-top: 3px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #374151;
+      padding: 4px 8px;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .chip-blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .chip-green {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .chip-yellow {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .chip-red {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .row > button {
+      flex: 1;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 42px 18px;
+      color: var(--muted);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .empty h2 {
+      color: var(--text);
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .draw-screen {
+      display: grid;
+      gap: 10px;
+    }
+
+    .draw-main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-card {
+      min-height: calc(100dvh - 250px - var(--safe-top) - var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .result-sub {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .result-box {
+      flex: 1;
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      text-align: center;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+      padding: 14px;
+    }
+
+    .result-name {
+      font-size: clamp(42px, 18vw, 86px);
+      line-height: 1.05;
+      font-weight: 950;
+      color: var(--primary);
+      word-break: break-word;
+      animation: pop 0.22s ease;
+    }
+
+    .winner-list {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .winner {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px 12px;
+      font-weight: 850;
+      font-size: clamp(18px, 5vw, 26px);
+      color: var(--primary);
+      word-break: break-word;
+      animation: pop 0.22s ease;
+    }
+
+    .group-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 8px;
+      text-align: left;
+    }
+
+    .group {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px;
+      animation: pop 0.22s ease;
+    }
+
+    .group h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .group p {
+      margin: 0;
+      line-height: 1.5;
+      color: #374151;
+      word-break: break-word;
+      font-size: 14px;
+    }
+
+    .control-card {
+      padding: 12px;
+    }
+
+    .compact-controls {
+      display: grid;
+      gap: 8px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .field small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .draw-button {
+      width: 100%;
+      min-height: 52px;
+      font-size: 17px;
+      font-weight: 850;
+      border-radius: 16px;
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      background: rgba(15, 23, 42, 0.42);
+      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
+    }
+
+    .modal-mask.show {
+      display: grid;
+      place-items: end center;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom));
+      overflow: auto;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 22px 70px rgba(15, 23, 42, 0.28);
+      padding: 14px;
+      animation: slideUp 0.18s ease;
+    }
+
+    .modal.wide {
+      width: min(920px, 100%);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modal-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
 
     .divider {
       height: 1px;
       background: var(--border);
-      margin: 14px 0;
+      margin: 10px 0;
     }
 
-    .help {
-      background: #fffbeb;
-      color: #92400e;
-      border: 1px solid #fde68a;
-      border-radius: 14px;
-      padding: 12px;
-      line-height: 1.6;
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .switch-row strong {
+      display: block;
       font-size: 14px;
     }
 
-    .searchbar {
-      margin-bottom: 14px;
+    .switch-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #d1d5db;
+      transition: 0.16s ease;
+    }
+
+    .slider::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      transition: 0.16s ease;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--primary);
+    }
+
+    .switch input:checked + .slider::after {
+      transform: translateX(22px);
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .history-item-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .history-time {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .history-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #374151;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + var(--safe-bottom));
+      transform: translateX(-50%);
+      z-index: 80;
+      max-width: calc(100vw - 28px);
+      border-radius: 999px;
+      background: #111827;
+      color: #fff;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.18s ease;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      bottom: calc(28px + var(--safe-bottom));
     }
 
     .hidden {
@@ -484,75 +663,120 @@
       }
     }
 
-    @media (max-width: 720px) {
-      .app-shell {
-        padding: 12px;
+    @keyframes slideUp {
+      from {
+        transform: translateY(18px);
+        opacity: 0.75;
       }
 
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .top-actions {
-        width: 100%;
-      }
-
-      .top-actions button {
-        flex: 1 1 auto;
-      }
-
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .draw-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .actions button {
-        flex: 1 1 auto;
-      }
-
-      .brand h1 {
-        font-size: 20px;
-      }
-
-      .big-result {
-        min-height: 220px;
+      to {
+        transform: translateY(0);
+        opacity: 1;
       }
     }
 
-    @media (orientation: landscape) and (max-width: 900px) {
-      .draw-layout {
-        grid-template-columns: 300px 1fr;
+    @media (orientation: landscape) and (max-height: 560px) {
+      .app {
+        padding: calc(8px + var(--safe-top)) 10px calc(8px + var(--safe-bottom));
       }
 
-      .big-result {
-        min-height: 220px;
+      .topbar {
+        margin-bottom: 8px;
+      }
+
+      .draw-main {
+        grid-template-columns: minmax(280px, 35%) 1fr;
+        align-items: stretch;
+      }
+
+      .result-card {
+        min-height: calc(100dvh - 70px - var(--safe-top) - var(--safe-bottom));
+        order: 2;
+      }
+
+      .control-card {
+        order: 1;
+      }
+
+      .result-box {
+        min-height: 120px;
+      }
+
+      .result-name {
+        font-size: clamp(38px, 12vw, 76px);
+      }
+
+      .modal-mask.show {
+        place-items: center;
+      }
+
+      .modal {
+        max-height: calc(100dvh - 18px - var(--safe-top) - var(--safe-bottom));
+      }
+    }
+
+    @media (min-width: 760px) {
+      .draw-main {
+        grid-template-columns: 330px 1fr;
+        align-items: stretch;
+      }
+
+      .result-card {
+        min-height: calc(100dvh - 88px - var(--safe-top) - var(--safe-bottom));
+        order: 2;
+      }
+
+      .control-card {
+        order: 1;
+      }
+
+      .modal-mask.show {
+        place-items: center;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding-inline: 10px;
+      }
+
+      .brand p {
+        max-width: 44vw;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid,
+      .control-grid,
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .result-card {
+        min-height: calc(100dvh - 270px - var(--safe-top) - var(--safe-bottom));
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="app-shell">
-    <div id="app"></div>
+  <div id="app" class="app"></div>
+
+  <div id="modalMask" class="modal-mask" onclick="closeModalByMask(event)">
+    <div id="modal" class="modal" onclick="event.stopPropagation()"></div>
   </div>
 
   <input id="importFile" type="file" accept="application/json,.json" class="hidden" />
   <div id="toast" class="toast"></div>
 
   <script>
-    const STORAGE_KEY = "random_pick_static_web_v1";
+    const STORAGE_KEY = "random_pick_pwa_compact_v2";
 
     const MODE_LABELS = {
-      one: "随机抽一个",
-      multi: "随机抽多个",
+      one: "抽一个",
+      multi: "抽多个",
       group: "随机分组"
     };
 
@@ -563,22 +787,44 @@
     };
 
     const app = document.getElementById("app");
+    const modalMask = document.getElementById("modalMask");
+    const modal = document.getElementById("modal");
     const importFile = document.getElementById("importFile");
 
     let state = loadState();
-    let currentView = { name: "home", id: null };
-    let searchKeyword = "";
+    let currentView = {
+      name: "home",
+      id: null
+    };
+    let keyword = "";
+    let volatileResult = {};
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { cards: [] };
-        const parsed = JSON.parse(raw);
-        if (!parsed || !Array.isArray(parsed.cards)) return { cards: [] };
-        return parsed;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            cards: normalizeCards(parsed.cards || [])
+          };
+        }
+
+        const oldRaw = localStorage.getItem("random_pick_static_web_v1");
+        if (oldRaw) {
+          const oldParsed = JSON.parse(oldRaw);
+          return {
+            cards: normalizeCards(oldParsed.cards || [])
+          };
+        }
+
+        return {
+          cards: []
+        };
       } catch (error) {
         console.error(error);
-        return { cards: [] };
+        return {
+          cards: []
+        };
       }
     }
 
@@ -597,11 +843,19 @@
       return new Date().toISOString();
     }
 
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
     function formatTime(iso) {
-      if (!iso) return "从未";
+      if (!iso) return "无";
       try {
         return new Date(iso).toLocaleString("zh-CN", {
-          year: "numeric",
           month: "2-digit",
           day: "2-digit",
           hour: "2-digit",
@@ -612,23 +866,12 @@
       }
     }
 
-    function escapeHTML(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
     function toast(message) {
       const el = document.getElementById("toast");
       el.textContent = message;
       el.classList.add("show");
       clearTimeout(toast.timer);
-      toast.timer = setTimeout(() => {
-        el.classList.remove("show");
-      }, 1800);
+      toast.timer = setTimeout(() => el.classList.remove("show"), 1700);
     }
 
     function getCard(id) {
@@ -649,7 +892,8 @@
           filterMode: "none",
           groupBy: "groupCount",
           groupCount: 2,
-          groupSize: 3
+          groupSize: 3,
+          recordHistory: false
         },
         filteredIds: [],
         history: [],
@@ -658,6 +902,49 @@
         lastUsedAt: null,
         lastResult: null
       };
+    }
+
+    function normalizeCards(cards) {
+      return Array.isArray(cards) ? cards.map(normalizeCard).filter(Boolean) : [];
+    }
+
+    function normalizeCard(card) {
+      if (!card || typeof card !== "object") return null;
+
+      const fallback = createDefaultCard();
+      const normalized = {
+        ...fallback,
+        ...card,
+        id: card.id || uid("card"),
+        name: card.name || "未命名卡片",
+        description: card.description || "",
+        color: card.color || "#2563eb",
+        mode: ["one", "multi", "group"].includes(card.mode) ? card.mode : "one",
+        participants: Array.isArray(card.participants) ? card.participants : [],
+        rules: {
+          ...fallback.rules,
+          ...(card.rules || {}),
+          recordHistory: card.rules && typeof card.rules.recordHistory === "boolean" ? card.rules.recordHistory : false
+        },
+        filteredIds: Array.isArray(card.filteredIds) ? card.filteredIds : [],
+        history: Array.isArray(card.history) ? card.history : [],
+        createdAt: card.createdAt || nowISO(),
+        updatedAt: card.updatedAt || nowISO(),
+        lastUsedAt: card.lastUsedAt || null,
+        lastResult: card.rules && card.rules.recordHistory ? card.lastResult || null : null
+      };
+
+      normalized.participants = normalized.participants
+        .filter(p => p && String(p.name || "").trim())
+        .map(p => ({
+          id: p.id || uid("person"),
+          name: String(p.name).trim(),
+          enabled: p.enabled !== false,
+          note: p.note || ""
+        }));
+
+      cleanFilteredIds(normalized);
+      return normalized;
     }
 
     function parseNames(text) {
@@ -671,25 +958,24 @@
       const seen = new Set();
       const result = [];
       for (const name of names) {
-        const key = name.trim();
-        if (!key || seen.has(key)) continue;
-        seen.add(key);
-        result.push(key);
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        result.push(name);
       }
       return result;
     }
 
-    function buildParticipantsFromText(text, oldParticipants = []) {
+    function buildParticipants(text, oldParticipants = []) {
       const names = uniqueNames(parseNames(text));
-      const oldQueues = new Map();
+      const oldMap = new Map();
 
-      for (const p of oldParticipants) {
-        if (!oldQueues.has(p.name)) oldQueues.set(p.name, []);
-        oldQueues.get(p.name).push(p);
-      }
+      oldParticipants.forEach(p => {
+        if (!oldMap.has(p.name)) oldMap.set(p.name, []);
+        oldMap.get(p.name).push(p);
+      });
 
       return names.map(name => {
-        const queue = oldQueues.get(name);
+        const queue = oldMap.get(name);
         const old = queue && queue.length ? queue.shift() : null;
         return {
           id: old ? old.id : uid("person"),
@@ -701,36 +987,43 @@
     }
 
     function participantsText(card) {
-      return card.participants.map(p => p.name).join("\n");
+      return (card.participants || []).map(p => p.name).join("\n");
     }
 
     function enabledParticipants(card) {
-      return card.participants.filter(p => p.enabled !== false);
+      return (card.participants || []).filter(p => p.enabled !== false);
     }
 
     function eligibleParticipants(card) {
       const enabled = enabledParticipants(card);
-      const filterMode = card.rules?.filterMode || "none";
-      if (filterMode === "none") return enabled;
-
+      const mode = card.rules?.filterMode || "none";
+      if (mode === "none") return enabled;
       const filtered = new Set(card.filteredIds || []);
       return enabled.filter(p => !filtered.has(p.id));
     }
 
     function cleanFilteredIds(card) {
-      const validIds = new Set(card.participants.map(p => p.id));
-      card.filteredIds = (card.filteredIds || []).filter(id => validIds.has(id));
+      const valid = new Set((card.participants || []).map(p => p.id));
+      card.filteredIds = (card.filteredIds || []).filter(id => valid.has(id));
+    }
+
+    function statsOf(card) {
+      cleanFilteredIds(card);
+      return {
+        total: (card.participants || []).length,
+        enabled: enabledParticipants(card).length,
+        eligible: eligibleParticipants(card).length,
+        filtered: (card.filteredIds || []).length
+      };
     }
 
     function randomInt(maxExclusive) {
       if (maxExclusive <= 0) return 0;
-
       if (window.crypto && crypto.getRandomValues) {
         const array = new Uint32Array(1);
         crypto.getRandomValues(array);
         return array[0] % maxExclusive;
       }
-
       return Math.floor(Math.random() * maxExclusive);
     }
 
@@ -756,13 +1049,7 @@
       card.filteredIds = [...set];
     }
 
-    function resetFilter(card) {
-      card.filteredIds = [];
-      card.updatedAt = nowISO();
-      saveState();
-    }
-
-    function ensureEnoughEligible(card, count) {
+    function ensureEnough(card, count) {
       cleanFilteredIds(card);
 
       const enabled = enabledParticipants(card);
@@ -770,12 +1057,12 @@
       const filterMode = card.rules?.filterMode || "none";
 
       if (enabled.length === 0) {
-        alert("当前卡片还没有可用名单，请先添加名单。");
+        alert("当前卡片没有可用名单，请先编辑名单。");
         return null;
       }
 
       if (count > enabled.length) {
-        alert(`抽取人数不能超过名单人数。\n当前可用名单：${enabled.length} 人，需要抽取：${count} 人。`);
+        alert(`抽取人数不能超过可用名单人数。\n可用：${enabled.length} 人，需要：${count} 人。`);
         return null;
       }
 
@@ -785,13 +1072,12 @@
         const ok = confirm("本轮可抽人数不足，是否重置本轮过滤并开始新一轮？");
         if (!ok) return null;
         card.filteredIds = [];
-        eligible = eligibleParticipants(card);
         saveState();
-        return eligible.length >= count ? eligible : null;
+        return eligibleParticipants(card);
       }
 
       if (filterMode === "permanent") {
-        alert("永久过滤后可抽人数不足。请重置过滤、减少抽取人数或添加新名单。");
+        alert("永久过滤后可抽人数不足。请重置过滤、减少人数或添加名单。");
         return null;
       }
 
@@ -800,307 +1086,106 @@
     }
 
     function modeLabel(card) {
-      return MODE_LABELS[card.mode] || "随机抽签";
-    }
-
-    function cardStats(card) {
-      cleanFilteredIds(card);
-      const total = card.participants.length;
-      const enabled = enabledParticipants(card).length;
-      const eligible = eligibleParticipants(card).length;
-      const filtered = (card.filteredIds || []).length;
-      return { total, enabled, eligible, filtered };
+      return MODE_LABELS[card.mode] || "随机";
     }
 
     function render() {
       if (currentView.name === "home") renderHome();
-      if (currentView.name === "edit") renderEdit(currentView.id);
       if (currentView.name === "draw") renderDraw(currentView.id);
-      if (currentView.name === "history") renderHistory(currentView.id);
     }
 
-    function renderTopbar(subtitle = "静态网页随机抽签工具") {
+    function topbar(title = "Random Pick", subtitle = "随机抽签") {
       return `
         <div class="topbar">
-          <div class="brand" onclick="goHome()" role="button" title="返回首页">
-            <div class="brand-icon">RP</div>
-            <div>
-              <h1>Random Pick</h1>
+          <div class="brand" onclick="goHome()" role="button">
+            <div class="logo">RP</div>
+            <div class="brand-title">
+              <h1>${escapeHTML(title)}</h1>
               <p>${escapeHTML(subtitle)}</p>
             </div>
           </div>
           <div class="top-actions">
-            <button class="btn-primary" onclick="renderEdit(null)">+ 新建卡片</button>
-            <button onclick="exportAll()">导出数据</button>
-            <button onclick="importFile.click()">导入数据</button>
+            <button class="icon-btn" onclick="openCreateModal()" title="新建">＋</button>
+            <button class="icon-btn" onclick="openGlobalMore()" title="更多">⋯</button>
           </div>
         </div>
       `;
     }
 
     function renderHome() {
-      const cards = state.cards
-        .filter(card => {
-          const key = searchKeyword.trim().toLowerCase();
-          if (!key) return true;
-          return `${card.name} ${card.description || ""}`.toLowerCase().includes(key);
-        })
-        .sort((a, b) => {
-          const ta = a.lastUsedAt || a.updatedAt || a.createdAt || "";
-          const tb = b.lastUsedAt || b.updatedAt || b.createdAt || "";
-          return tb.localeCompare(ta);
-        });
-
-      const cardsHtml = cards.map(card => {
-        const stats = cardStats(card);
-        return `
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title-wrap">
-                <h2 class="card-title">${escapeHTML(card.name || "未命名卡片")}</h2>
-                ${card.description ? `<div class="card-desc">${escapeHTML(card.description)}</div>` : ""}
-              </div>
-              <div class="color-dot" style="background:${escapeHTML(card.color || "#2563eb")}"></div>
-            </div>
-
-            <div class="meta">
-              <span class="tag tag-blue">${escapeHTML(modeLabel(card))}</span>
-              <span class="tag">名单 ${stats.enabled} 人</span>
-              <span class="tag tag-green">可抽 ${stats.eligible} 人</span>
-              <span class="tag tag-yellow">${escapeHTML(FILTER_LABELS[card.rules?.filterMode || "none"])}</span>
-              <span class="tag">历史 ${card.history?.length || 0} 次</span>
-            </div>
-
-            <div class="card-desc">
-              最近使用：${escapeHTML(formatTime(card.lastUsedAt))}
-            </div>
-
-            <div class="actions">
-              <button class="btn-primary" onclick="renderDraw('${card.id}')">开始</button>
-              <button onclick="renderEdit('${card.id}')">编辑</button>
-              <button onclick="renderHistory('${card.id}')">历史</button>
-              <button onclick="duplicateCard('${card.id}')">复制</button>
-              <button class="btn-danger" onclick="deleteCard('${card.id}')">删除</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      app.innerHTML = `
-        ${renderTopbar()}
-        <div class="searchbar">
-          <input
-            id="searchInput"
-            type="search"
-            placeholder="搜索卡片，例如：抽奖、点名、分组"
-            value="${escapeHTML(searchKeyword)}"
-            oninput="searchKeyword=this.value; renderHome();"
-          />
-        </div>
-
-        ${state.cards.length === 0 ? `
-          <div class="empty">
-            <h2>还没有随机卡片</h2>
-            <p>你可以创建一个“课堂点名”“年会抽奖”或“随机分组”卡片。</p>
-            <button class="btn-primary" onclick="renderEdit(null)">创建第一张卡片</button>
-          </div>
-        ` : `
-          <div class="grid cards-grid">
-            ${cardsHtml || `
-              <div class="empty">
-                <h2>没有匹配结果</h2>
-                <p>换个关键词试试。</p>
-              </div>
-            `}
-          </div>
-        `}
-      `;
-    }
-
-    function renderEdit(id) {
-      currentView = { name: "edit", id };
-
-      const isNew = !id;
-      const card = isNew ? createDefaultCard() : getCard(id);
-
-      if (!card) {
-        alert("卡片不存在。");
-        goHome();
-        return;
-      }
-
-      app.innerHTML = `
-        ${renderTopbar(isNew ? "新建随机卡片" : "编辑随机卡片")}
-
-        <div class="card form-card">
-          <div class="card-header">
-            <div>
-              <h2 class="card-title">${isNew ? "新建卡片" : "编辑卡片"}</h2>
-              <div class="card-desc">每张卡片对应一个独立的随机事件。</div>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>卡片名称 *</label>
-              <input id="cardName" value="${escapeHTML(card.name)}" placeholder="例如：年会抽奖、课堂点名" />
-            </div>
-
-            <div class="field">
-              <label>卡片颜色</label>
-              <input id="cardColor" type="color" value="${escapeHTML(card.color || "#2563eb")}" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label>描述</label>
-            <input id="cardDescription" value="${escapeHTML(card.description || "")}" placeholder="可选，例如：年会随机抽奖" />
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>默认抽取模式</label>
-              <select id="cardMode" onchange="updateRuleVisibility()">
-                <option value="one" ${card.mode === "one" ? "selected" : ""}>随机抽一个</option>
-                <option value="multi" ${card.mode === "multi" ? "selected" : ""}>随机抽多个</option>
-                <option value="group" ${card.mode === "group" ? "selected" : ""}>随机分组</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label>抽中过滤</label>
-              <select id="filterMode">
-                <option value="none" ${card.rules?.filterMode === "none" ? "selected" : ""}>不过滤：每次都从完整名单抽</option>
-                <option value="round" ${card.rules?.filterMode === "round" ? "selected" : ""}>本轮过滤：一轮抽完后可重置</option>
-                <option value="permanent" ${card.rules?.filterMode === "permanent" ? "selected" : ""}>永久过滤：适合抽奖不重复中奖</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="multiRule" class="field">
-            <label>每次抽取人数</label>
-            <input id="drawCount" type="number" min="1" value="${escapeHTML(card.rules?.count || 1)}" />
-          </div>
-
-          <div id="groupRule">
-            <div class="form-grid">
-              <div class="field">
-                <label>分组方式</label>
-                <select id="groupBy">
-                  <option value="groupCount" ${card.rules?.groupBy !== "groupSize" ? "selected" : ""}>按组数分</option>
-                  <option value="groupSize" ${card.rules?.groupBy === "groupSize" ? "selected" : ""}>按每组人数分</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label>组数</label>
-                <input id="groupCount" type="number" min="1" value="${escapeHTML(card.rules?.groupCount || 2)}" />
-              </div>
-
-              <div class="field">
-                <label>每组人数</label>
-                <input id="groupSize" type="number" min="1" value="${escapeHTML(card.rules?.groupSize || 3)}" />
-              </div>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>名单输入 *</label>
-            <textarea id="namesText" placeholder="支持换行、逗号、顿号、分号分隔。例如：
-张三
-李四
-王五">${escapeHTML(participantsText(card))}</textarea>
-            <small>保存时会自动去除空项和重复姓名。</small>
-          </div>
-
-          <div class="help">
-            数据只保存在当前浏览器本地。建议重要名单定期使用“导出数据”备份。
-          </div>
-
-          <div class="actions">
-            <button class="btn-primary" onclick="saveCardFromForm('${isNew ? "" : card.id}')">保存卡片</button>
-            ${!isNew ? `<button onclick="exportCard('${card.id}')">导出此卡片</button>` : ""}
-            <button onclick="goHome()">返回首页</button>
-          </div>
-        </div>
-      `;
-
-      updateRuleVisibility();
-    }
-
-    function updateRuleVisibility() {
-      const mode = document.getElementById("cardMode")?.value || "one";
-      const multiRule = document.getElementById("multiRule");
-      const groupRule = document.getElementById("groupRule");
-
-      if (multiRule) {
-        multiRule.style.display = mode === "multi" ? "flex" : "none";
-      }
-
-      if (groupRule) {
-        groupRule.style.display = mode === "group" ? "block" : "none";
-      }
-    }
-
-    function saveCardFromForm(id) {
-      const isNew = !id;
-      let card = isNew ? createDefaultCard() : getCard(id);
-
-      if (!card) {
-        alert("卡片不存在。");
-        return;
-      }
-
-      const name = document.getElementById("cardName").value.trim();
-      const description = document.getElementById("cardDescription").value.trim();
-      const color = document.getElementById("cardColor").value;
-      const mode = document.getElementById("cardMode").value;
-      const filterMode = document.getElementById("filterMode").value;
-      const namesText = document.getElementById("namesText").value;
-      const drawCount = Math.max(1, parseInt(document.getElementById("drawCount")?.value || "1", 10));
-      const groupBy = document.getElementById("groupBy")?.value || "groupCount";
-      const groupCount = Math.max(1, parseInt(document.getElementById("groupCount")?.value || "2", 10));
-      const groupSize = Math.max(1, parseInt(document.getElementById("groupSize")?.value || "3", 10));
-
-      if (!name) {
-        alert("请输入卡片名称。");
-        return;
-      }
-
-      const participants = buildParticipantsFromText(namesText, card.participants || []);
-
-      if (participants.length === 0) {
-        alert("请至少输入一个名单成员。");
-        return;
-      }
-
-      card.name = name;
-      card.description = description;
-      card.color = color;
-      card.mode = mode;
-      card.participants = participants;
-      card.rules = {
-        count: drawCount,
-        filterMode,
-        groupBy,
-        groupCount,
-        groupSize
+      currentView = {
+        name: "home",
+        id: null
       };
-      card.updatedAt = nowISO();
 
-      cleanFilteredIds(card);
+      const key = keyword.trim().toLowerCase();
+      const cards = state.cards
+        .filter(card => !key || `${card.name} ${card.description || ""}`.toLowerCase().includes(key))
+        .sort((a, b) => (b.lastUsedAt || b.updatedAt || b.createdAt || "").localeCompare(a.lastUsedAt || a.updatedAt || a.createdAt || ""));
 
-      if (isNew) {
-        state.cards.push(card);
-      }
+      app.innerHTML = `
+        <div class="page">
+          ${topbar("Random Pick", "PWA 简约随机工具")}
 
-      saveState();
-      toast("卡片已保存");
-      renderDraw(card.id);
+          <div class="home-tools">
+            <input value="${escapeHTML(keyword)}" placeholder="搜索卡片" oninput="keyword=this.value; renderHome();" />
+            <button class="btn-primary" onclick="openCreateModal()">新建</button>
+          </div>
+
+          ${state.cards.length === 0 ? `
+            <div class="empty">
+              <h2>还没有卡片</h2>
+              <p>创建一个抽签、点名、抽奖或分组卡片。</p>
+              <button class="btn-primary" onclick="openCreateModal()">创建第一张卡片</button>
+            </div>
+          ` : `
+            <div class="cards">
+              ${cards.map(card => cardHTML(card)).join("") || `
+                <div class="empty">
+                  <h2>没有匹配结果</h2>
+                  <p>换个关键词试试。</p>
+                </div>
+              `}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function cardHTML(card) {
+      const s = statsOf(card);
+      return `
+        <div class="card pick-card">
+          <div class="pick-card-head">
+            <div>
+              <h2 class="pick-card-title">${escapeHTML(card.name || "未命名卡片")}</h2>
+              ${card.description ? `<div class="pick-card-desc">${escapeHTML(card.description)}</div>` : ""}
+            </div>
+            <div class="dot" style="background:${escapeHTML(card.color || "#2563eb")}"></div>
+          </div>
+
+          <div class="chips">
+            <span class="chip chip-blue">${escapeHTML(modeLabel(card))}</span>
+            <span class="chip">名单 ${s.enabled}</span>
+            <span class="chip chip-green">可抽 ${s.eligible}</span>
+            <span class="chip ${card.rules?.recordHistory ? "chip-yellow" : ""}">
+              ${card.rules?.recordHistory ? "记录开" : "记录关"}
+            </span>
+          </div>
+
+          <div class="row">
+            <button class="btn-primary" onclick="renderDraw('${card.id}')">开始</button>
+            <button onclick="openCardMore('${card.id}')">更多</button>
+          </div>
+        </div>
+      `;
     }
 
     function renderDraw(id) {
-      currentView = { name: "draw", id };
+      currentView = {
+        name: "draw",
+        id
+      };
 
       const card = getCard(id);
       if (!card) {
@@ -1109,110 +1194,116 @@
         return;
       }
 
-      const stats = cardStats(card);
-      const lastResultHtml = renderLastResult(card);
+      const s = statsOf(card);
+      const result = volatileResult[card.id] || (card.rules?.recordHistory ? card.lastResult : null);
 
       app.innerHTML = `
-        ${renderTopbar(card.name || "开始抽取")}
+        <div class="page draw-screen">
+          ${topbar(card.name || "随机抽取", `${modeLabel(card)} · 可抽 ${s.eligible}/${s.enabled}`)}
 
-        <div class="draw-layout">
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h2 class="card-title">${escapeHTML(card.name || "未命名卡片")}</h2>
-                ${card.description ? `<div class="card-desc">${escapeHTML(card.description)}</div>` : ""}
-              </div>
-              <div class="color-dot" style="background:${escapeHTML(card.color || "#2563eb")}"></div>
-            </div>
-
-            <div class="meta">
-              <span class="tag tag-blue">${escapeHTML(modeLabel(card))}</span>
-              <span class="tag">总名单 ${stats.total}</span>
-              <span class="tag tag-green">可用 ${stats.enabled}</span>
-              <span class="tag tag-yellow">可抽 ${stats.eligible}</span>
-              <span class="tag tag-red">已过滤 ${stats.filtered}</span>
-            </div>
-
-            <div class="divider"></div>
-
-            ${card.mode === "multi" ? `
-              <div class="field">
-                <label>本次抽取人数</label>
-                <input id="runtimeCount" type="number" min="1" value="${escapeHTML(card.rules?.count || 1)}" />
-              </div>
-            ` : ""}
-
-            ${card.mode === "group" ? `
-              <div class="field">
-                <label>分组方式</label>
-                <select id="runtimeGroupBy">
-                  <option value="groupCount" ${card.rules?.groupBy !== "groupSize" ? "selected" : ""}>按组数分</option>
-                  <option value="groupSize" ${card.rules?.groupBy === "groupSize" ? "selected" : ""}>按每组人数分</option>
-                </select>
+          <div class="draw-main">
+            <div class="card control-card">
+              <div class="chips" style="margin-bottom:8px;">
+                <span class="chip chip-blue">${escapeHTML(modeLabel(card))}</span>
+                <span class="chip chip-green">可抽 ${s.eligible}</span>
+                <span class="chip chip-red">过滤 ${s.filtered}</span>
+                <span class="chip">${escapeHTML(FILTER_LABELS[card.rules?.filterMode || "none"])}</span>
               </div>
 
-              <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-                <div class="field">
-                  <label>组数</label>
-                  <input id="runtimeGroupCount" type="number" min="1" value="${escapeHTML(card.rules?.groupCount || 2)}" />
-                </div>
-                <div class="field">
-                  <label>每组人数</label>
-                  <input id="runtimeGroupSize" type="number" min="1" value="${escapeHTML(card.rules?.groupSize || 3)}" />
+              <div class="compact-controls">
+                ${runtimeControls(card)}
+
+                <button class="btn-primary draw-button" onclick="startDraw('${card.id}')">
+                  ${card.mode === "group" ? "开始分组" : "开始抽取"}
+                </button>
+
+                <div class="row">
+                  <button onclick="openCardMore('${card.id}')">更多</button>
+                  <button onclick="goHome()">返回</button>
                 </div>
               </div>
-            ` : ""}
-
-            <div class="actions">
-              <button class="btn-primary btn-block" onclick="startDraw('${card.id}')">
-                ${card.mode === "group" ? "开始分组" : "开始抽取"}
-              </button>
-              <button onclick="renderEdit('${card.id}')">编辑卡片</button>
-              <button onclick="renderHistory('${card.id}')">历史记录</button>
-              <button onclick="handleResetFilter('${card.id}')">重置过滤</button>
-              <button onclick="goHome()">返回首页</button>
             </div>
-          </div>
 
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h2 class="card-title">结果</h2>
-                <div class="card-desc">点击开始后会自动保存到历史记录。</div>
+            <div class="card result-card">
+              <div class="result-header">
+                <div>
+                  <h2 class="result-title">${escapeHTML(card.name || "未命名卡片")}</h2>
+                  <div class="result-sub">
+                    ${card.rules?.recordHistory ? "记录已开启" : "记录默认关闭，仅当前页面显示结果"}
+                  </div>
+                </div>
+                <div class="dot" style="background:${escapeHTML(card.color || "#2563eb")}"></div>
               </div>
-            </div>
 
-            <div id="resultBox" class="big-result">
-              ${lastResultHtml || `<div class="card-desc">等待抽取...</div>`}
+              <div id="resultBox" class="result-box">
+                ${renderResult(result)}
+              </div>
             </div>
           </div>
         </div>
       `;
     }
 
-    function renderLastResult(card) {
-      const result = card.lastResult;
-      if (!result) return "";
-
-      if (result.mode === "one") {
-        return `<div class="result-name">${escapeHTML(result.result[0] || "")}</div>`;
+    function runtimeControls(card) {
+      if (card.mode === "multi") {
+        return `
+          <div class="field">
+            <label>本次抽取人数</label>
+            <input id="runtimeCount" type="number" min="1" value="${escapeHTML(card.rules?.count || 1)}" />
+          </div>
+        `;
       }
 
-      if (result.mode === "multi") {
+      if (card.mode === "group") {
         return `
-          <div class="result-list">
-            ${(result.result || []).map((name, index) => `
-              <div class="winner-item">${index + 1}. ${escapeHTML(name)}</div>
+          <div class="field">
+            <label>分组方式</label>
+            <select id="runtimeGroupBy">
+              <option value="groupCount" ${card.rules?.groupBy !== "groupSize" ? "selected" : ""}>按组数</option>
+              <option value="groupSize" ${card.rules?.groupBy === "groupSize" ? "selected" : ""}>按每组人数</option>
+            </select>
+          </div>
+
+          <div class="control-grid">
+            <div class="field">
+              <label>组数</label>
+              <input id="runtimeGroupCount" type="number" min="1" value="${escapeHTML(card.rules?.groupCount || 2)}" />
+            </div>
+            <div class="field">
+              <label>每组人数</label>
+              <input id="runtimeGroupSize" type="number" min="1" value="${escapeHTML(card.rules?.groupSize || 3)}" />
+            </div>
+          </div>
+        `;
+      }
+
+      return "";
+    }
+
+    function renderResult(record) {
+      if (!record) {
+        return `<div style="color:var(--muted);">等待抽取</div>`;
+      }
+
+      if (record.mode === "one") {
+        return `<div class="result-name">${escapeHTML(record.result?.[0] || "")}</div>`;
+      }
+
+      if (record.mode === "multi") {
+        return `
+          <div class="winner-list">
+            ${(record.result || []).map((name, index) => `
+              <div class="winner">${index + 1}. ${escapeHTML(name)}</div>
             `).join("")}
           </div>
         `;
       }
 
-      if (result.mode === "group") {
+      if (record.mode === "group") {
         return `
-          <div class="group-result">
-            ${(result.result || []).map((group, index) => `
-              <div class="group-box">
+          <div class="group-grid">
+            ${(record.result || []).map((group, index) => `
+              <div class="group">
                 <h3>第 ${index + 1} 组</h3>
                 <p>${escapeHTML(group.join("、"))}</p>
               </div>
@@ -1221,7 +1312,7 @@
         `;
       }
 
-      return "";
+      return `<div style="color:var(--muted);">暂无结果</div>`;
     }
 
     function startDraw(id) {
@@ -1234,49 +1325,34 @@
         const count = Math.max(1, parseInt(document.getElementById("runtimeCount")?.value || card.rules.count || "1", 10));
         card.rules.count = count;
         drawPeople(card, count);
-      } else if (card.mode === "group") {
+      } else {
         drawGroups(card);
       }
     }
 
     function drawPeople(card, count) {
-      const eligible = ensureEnoughEligible(card, count);
+      const eligible = ensureEnough(card, count);
       if (!eligible) return;
 
       const selected = sample(eligible, count);
       addToFilter(card, selected);
 
-      const mode = count === 1 ? "one" : "multi";
-      const names = selected.map(p => p.name);
-
       const record = {
         id: uid("history"),
         time: nowISO(),
-        mode,
+        mode: count === 1 ? "one" : "multi",
         participantCount: eligible.length,
-        result: names,
-        filterMode: card.rules.filterMode || "none"
+        result: selected.map(p => p.name),
+        filterMode: card.rules?.filterMode || "none"
       };
 
-      card.history = card.history || [];
-      card.history.unshift(record);
-      card.lastResult = record;
-      card.lastUsedAt = record.time;
-      card.updatedAt = record.time;
-
-      saveState();
-      toast("抽取完成，已保存历史");
-      renderDraw(card.id);
+      applyRecord(card, record);
     }
 
     function drawGroups(card) {
-      const groupByEl = document.getElementById("runtimeGroupBy");
-      const groupCountEl = document.getElementById("runtimeGroupCount");
-      const groupSizeEl = document.getElementById("runtimeGroupSize");
-
-      const groupBy = groupByEl?.value || card.rules.groupBy || "groupCount";
-      const groupCount = Math.max(1, parseInt(groupCountEl?.value || card.rules.groupCount || "2", 10));
-      const groupSize = Math.max(1, parseInt(groupSizeEl?.value || card.rules.groupSize || "3", 10));
+      const groupBy = document.getElementById("runtimeGroupBy")?.value || card.rules.groupBy || "groupCount";
+      const groupCount = Math.max(1, parseInt(document.getElementById("runtimeGroupCount")?.value || card.rules.groupCount || "2", 10));
+      const groupSize = Math.max(1, parseInt(document.getElementById("runtimeGroupSize")?.value || card.rules.groupSize || "3", 10));
 
       card.rules.groupBy = groupBy;
       card.rules.groupCount = groupCount;
@@ -1288,7 +1364,7 @@
       let eligible = eligibleParticipants(card);
 
       if (enabled.length === 0) {
-        alert("当前卡片还没有可用名单，请先添加名单。");
+        alert("当前卡片没有可用名单，请先编辑名单。");
         return;
       }
 
@@ -1309,7 +1385,9 @@
 
       if (groupBy === "groupCount") {
         const count = Math.min(groupCount, shuffled.length);
-        groups = Array.from({ length: count }, () => []);
+        groups = Array.from({
+          length: count
+        }, () => []);
         shuffled.forEach((person, index) => {
           groups[index % count].push(person);
         });
@@ -1327,82 +1405,327 @@
         mode: "group",
         participantCount: eligible.length,
         result: groups.map(group => group.map(p => p.name)),
-        filterMode: card.rules.filterMode || "none"
+        filterMode: card.rules?.filterMode || "none"
       };
 
-      card.history = card.history || [];
-      card.history.unshift(record);
-      card.lastResult = record;
-      card.lastUsedAt = record.time;
-      card.updatedAt = record.time;
+      applyRecord(card, record);
+    }
 
+    function applyRecord(card, record) {
+      volatileResult[card.id] = record;
+
+      if (card.rules?.recordHistory) {
+        card.history = card.history || [];
+        card.history.unshift(record);
+        card.lastResult = record;
+        card.lastUsedAt = record.time;
+      } else {
+        card.lastResult = null;
+      }
+
+      card.updatedAt = record.time;
       saveState();
-      toast("分组完成，已保存历史");
+      toast(card.rules?.recordHistory ? "完成，已记录" : "完成，未记录");
       renderDraw(card.id);
     }
 
-    function renderHistory(id) {
-      currentView = { name: "history", id };
+    function openCreateModal() {
+      openEditModal(null);
+    }
 
-      const card = getCard(id);
-      if (!card) {
-        alert("卡片不存在。");
-        goHome();
-        return;
-      }
+    function openEditModal(id) {
+      const isNew = !id;
+      const card = isNew ? createDefaultCard() : getCard(id);
+      if (!card) return;
 
-      const history = card.history || [];
+      openModal(`
+        <div class="modal-head">
+          <div>
+            <h2>${isNew ? "新建卡片" : "编辑卡片"}</h2>
+            <p>记录开关默认关闭；开启后才保存历史和最后结果。</p>
+          </div>
+          <button class="icon-btn" onclick="closeModal()">×</button>
+        </div>
 
-      app.innerHTML = `
-        ${renderTopbar(`${card.name} - 历史记录`)}
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2 class="card-title">${escapeHTML(card.name)} - 历史记录</h2>
-              <div class="card-desc">共 ${history.length} 条记录。</div>
-            </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>名称 *</label>
+            <input id="editName" value="${escapeHTML(card.name)}" placeholder="例如：课堂点名" />
           </div>
 
-          <div class="actions">
-            <button onclick="renderDraw('${card.id}')">返回抽取</button>
-            <button onclick="exportCard('${card.id}')">导出此卡片</button>
-            <button class="btn-danger" onclick="clearHistory('${card.id}')">清空历史</button>
+          <div class="field">
+            <label>颜色</label>
+            <input id="editColor" type="color" value="${escapeHTML(card.color || "#2563eb")}" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>描述</label>
+          <input id="editDescription" value="${escapeHTML(card.description || "")}" placeholder="可选" />
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>模式</label>
+            <select id="editMode" onchange="refreshEditRules()">
+              <option value="one" ${card.mode === "one" ? "selected" : ""}>随机抽一个</option>
+              <option value="multi" ${card.mode === "multi" ? "selected" : ""}>随机抽多个</option>
+              <option value="group" ${card.mode === "group" ? "selected" : ""}>随机分组</option>
+            </select>
           </div>
 
-          <div class="divider"></div>
+          <div class="field">
+            <label>过滤</label>
+            <select id="editFilterMode">
+              <option value="none" ${card.rules?.filterMode === "none" ? "selected" : ""}>不过滤</option>
+              <option value="round" ${card.rules?.filterMode === "round" ? "selected" : ""}>本轮过滤</option>
+              <option value="permanent" ${card.rules?.filterMode === "permanent" ? "selected" : ""}>永久过滤</option>
+            </select>
+          </div>
+        </div>
 
-          ${history.length === 0 ? `
-            <div class="empty">
-              <h2>暂无历史记录</h2>
-              <p>开始抽取后，结果会自动保存到这里。</p>
-            </div>
-          ` : `
-            <div class="history-list">
-              ${history.map(item => `
-                <div class="history-item">
-                  <div class="history-head">
-                    <div>
-                      <div class="history-time">${escapeHTML(formatTime(item.time))}</div>
-                      <div class="meta">
-                        <span class="tag tag-blue">${escapeHTML(MODE_LABELS[item.mode] || item.mode)}</span>
-                        <span class="tag">参与 ${item.participantCount || 0} 人</span>
-                        <span class="tag tag-yellow">${escapeHTML(FILTER_LABELS[item.filterMode || "none"])}</span>
-                      </div>
-                    </div>
-                    <button class="btn-danger" onclick="deleteHistory('${card.id}', '${item.id}')">删除</button>
-                  </div>
+        <div class="switch-row">
+          <div>
+            <strong>记录历史 / 当前操作结果</strong>
+            <span>默认关闭。关闭时结果只在当前页面临时显示，不保存到历史。</span>
+          </div>
+          <label class="switch">
+            <input id="editRecordHistory" type="checkbox" ${card.rules?.recordHistory ? "checked" : ""} />
+            <span class="slider"></span>
+          </label>
+        </div>
 
-                  <div class="history-body">${escapeHTML(historyResultText(item))}</div>
-                </div>
-              `).join("")}
+        <div id="editRulesBox">
+          ${editRulesHTML(card)}
+        </div>
+
+        <div class="field">
+          <label>名单 *</label>
+          <textarea id="editNames" placeholder="支持换行、逗号、顿号、分号分隔">${escapeHTML(participantsText(card))}</textarea>
+          <small>保存时会自动去除空项和重复姓名。</small>
+        </div>
+
+        <div class="row">
+          <button class="btn-primary" onclick="saveEdit('${isNew ? "" : card.id}')">保存</button>
+          <button onclick="closeModal()">取消</button>
+        </div>
+      `, true);
+
+      refreshEditRules();
+    }
+
+    function editRulesHTML(card) {
+      return `
+        <div id="editMultiRule" class="field">
+          <label>默认抽取人数</label>
+          <input id="editCount" type="number" min="1" value="${escapeHTML(card.rules?.count || 1)}" />
+        </div>
+
+        <div id="editGroupRule">
+          <div class="form-grid">
+            <div class="field">
+              <label>分组方式</label>
+              <select id="editGroupBy">
+                <option value="groupCount" ${card.rules?.groupBy !== "groupSize" ? "selected" : ""}>按组数</option>
+                <option value="groupSize" ${card.rules?.groupBy === "groupSize" ? "selected" : ""}>按每组人数</option>
+              </select>
             </div>
-          `}
+
+            <div class="field">
+              <label>组数</label>
+              <input id="editGroupCount" type="number" min="1" value="${escapeHTML(card.rules?.groupCount || 2)}" />
+            </div>
+
+            <div class="field">
+              <label>每组人数</label>
+              <input id="editGroupSize" type="number" min="1" value="${escapeHTML(card.rules?.groupSize || 3)}" />
+            </div>
+          </div>
         </div>
       `;
     }
 
-    function historyResultText(item) {
+    function refreshEditRules() {
+      const mode = document.getElementById("editMode")?.value || "one";
+      const multi = document.getElementById("editMultiRule");
+      const group = document.getElementById("editGroupRule");
+
+      if (multi) multi.style.display = mode === "multi" ? "grid" : "none";
+      if (group) group.style.display = mode === "group" ? "block" : "none";
+    }
+
+    function saveEdit(id) {
+      const isNew = !id;
+      let card = isNew ? createDefaultCard() : getCard(id);
+      if (!card) return;
+
+      const name = document.getElementById("editName").value.trim();
+      const description = document.getElementById("editDescription").value.trim();
+      const color = document.getElementById("editColor").value;
+      const mode = document.getElementById("editMode").value;
+      const filterMode = document.getElementById("editFilterMode").value;
+      const recordHistory = document.getElementById("editRecordHistory").checked;
+      const names = document.getElementById("editNames").value;
+
+      const count = Math.max(1, parseInt(document.getElementById("editCount")?.value || card.rules?.count || "1", 10));
+      const groupBy = document.getElementById("editGroupBy")?.value || card.rules?.groupBy || "groupCount";
+      const groupCount = Math.max(1, parseInt(document.getElementById("editGroupCount")?.value || card.rules?.groupCount || "2", 10));
+      const groupSize = Math.max(1, parseInt(document.getElementById("editGroupSize")?.value || card.rules?.groupSize || "3", 10));
+
+      if (!name) {
+        alert("请输入卡片名称。");
+        return;
+      }
+
+      const participants = buildParticipants(names, card.participants || []);
+
+      if (participants.length === 0) {
+        alert("请至少输入一个名单成员。");
+        return;
+      }
+
+      card.name = name;
+      card.description = description;
+      card.color = color;
+      card.mode = mode;
+      card.participants = participants;
+      card.rules = {
+        count,
+        filterMode,
+        groupBy,
+        groupCount,
+        groupSize,
+        recordHistory
+      };
+      card.updatedAt = nowISO();
+
+      if (!recordHistory) {
+        card.lastResult = null;
+      }
+
+      cleanFilteredIds(card);
+
+      if (isNew) {
+        state.cards.push(card);
+      }
+
+      saveState();
+      closeModal();
+      toast("已保存");
+      renderDraw(card.id);
+    }
+
+    function openCardMore(id) {
+      const card = getCard(id);
+      if (!card) return;
+
+      const s = statsOf(card);
+
+      openModal(`
+        <div class="modal-head">
+          <div>
+            <h2>${escapeHTML(card.name || "未命名卡片")}</h2>
+            <p>${modeLabel(card)} · 名单 ${s.enabled} · 可抽 ${s.eligible}</p>
+          </div>
+          <button class="icon-btn" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>记录历史 / 当前操作结果</strong>
+            <span>当前：${card.rules?.recordHistory ? "开启" : "关闭"}。关闭时不保存抽取记录。</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" ${card.rules?.recordHistory ? "checked" : ""} onchange="toggleRecordHistory('${card.id}', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="closeModal(); renderDraw('${card.id}')">开始抽取</button>
+          <button onclick="openEditModal('${card.id}')">编辑卡片</button>
+          <button onclick="openHistoryModal('${card.id}')">历史记录</button>
+          <button onclick="resetFilter('${card.id}')">重置过滤</button>
+          <button onclick="duplicateCard('${card.id}')">复制卡片</button>
+          <button onclick="exportCard('${card.id}')">导出卡片</button>
+          <button class="btn-danger" onclick="deleteCard('${card.id}')">删除卡片</button>
+          <button onclick="closeModal()">关闭</button>
+        </div>
+      `);
+    }
+
+    function toggleRecordHistory(id, checked) {
+      const card = getCard(id);
+      if (!card) return;
+
+      card.rules = card.rules || {};
+      card.rules.recordHistory = checked;
+
+      if (!checked) {
+        card.lastResult = null;
+      }
+
+      card.updatedAt = nowISO();
+      saveState();
+      toast(checked ? "记录已开启" : "记录已关闭");
+      render();
+    }
+
+    function openHistoryModal(id) {
+      const card = getCard(id);
+      if (!card) return;
+
+      if (!card.rules?.recordHistory) {
+        const ok = confirm("历史记录开关当前关闭。是否开启记录功能并查看历史？");
+        if (!ok) return;
+        card.rules.recordHistory = true;
+        saveState();
+      }
+
+      const history = card.history || [];
+
+      openModal(`
+        <div class="modal-head">
+          <div>
+            <h2>历史记录</h2>
+            <p>${escapeHTML(card.name)} · 共 ${history.length} 条</p>
+          </div>
+          <button class="icon-btn" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="row" style="margin-bottom:10px;">
+          <button onclick="exportCard('${card.id}')">导出卡片</button>
+          <button class="btn-danger" onclick="clearHistory('${card.id}')">清空历史</button>
+        </div>
+
+        ${history.length === 0 ? `
+          <div class="empty">
+            <h2>暂无历史</h2>
+            <p>开启记录后，抽取结果会保存到这里。</p>
+          </div>
+        ` : `
+          <div class="history-list">
+            ${history.map(item => `
+              <div class="history-item">
+                <div class="history-item-head">
+                  <div>
+                    <div class="history-time">${escapeHTML(formatTime(item.time))}</div>
+                    <div class="chips" style="margin-top:4px;">
+                      <span class="chip chip-blue">${escapeHTML(MODE_LABELS[item.mode] || item.mode)}</span>
+                      <span class="chip">参与 ${item.participantCount || 0}</span>
+                    </div>
+                  </div>
+                  <button class="btn-danger" onclick="deleteHistory('${card.id}', '${item.id}')">删</button>
+                </div>
+                <div class="history-body">${escapeHTML(historyText(item))}</div>
+              </div>
+            `).join("")}
+          </div>
+        `}
+      `, true);
+    }
+
+    function historyText(item) {
       if (item.mode === "one") {
         return `结果：${(item.result || []).join("、")}`;
       }
@@ -1420,16 +1743,59 @@
       return JSON.stringify(item.result, null, 2);
     }
 
-    function handleResetFilter(id) {
+    function resetFilter(id) {
       const card = getCard(id);
       if (!card) return;
 
-      const ok = confirm("确定要重置此卡片的抽中过滤状态吗？");
+      const ok = confirm("确定重置过滤状态吗？");
       if (!ok) return;
 
-      resetFilter(card);
-      toast("过滤状态已重置");
-      renderDraw(id);
+      card.filteredIds = [];
+      card.updatedAt = nowISO();
+      saveState();
+      closeModal();
+      toast("过滤已重置");
+      render();
+    }
+
+    function duplicateCard(id) {
+      const card = getCard(id);
+      if (!card) return;
+
+      const copy = JSON.parse(JSON.stringify(card));
+      copy.id = uid("card");
+      copy.name = `${card.name} 副本`;
+      copy.participants = copy.participants.map(p => ({
+        ...p,
+        id: uid("person")
+      }));
+      copy.filteredIds = [];
+      copy.history = [];
+      copy.lastResult = null;
+      copy.lastUsedAt = null;
+      copy.createdAt = nowISO();
+      copy.updatedAt = nowISO();
+
+      state.cards.push(copy);
+      saveState();
+      closeModal();
+      toast("已复制");
+      renderHome();
+    }
+
+    function deleteCard(id) {
+      const card = getCard(id);
+      if (!card) return;
+
+      const ok = confirm(`确定删除「${card.name}」吗？`);
+      if (!ok) return;
+
+      state.cards = state.cards.filter(item => item.id !== id);
+      delete volatileResult[id];
+      saveState();
+      closeModal();
+      toast("已删除");
+      goHome();
     }
 
     function deleteHistory(cardId, historyId) {
@@ -1442,93 +1808,70 @@
       card.history = (card.history || []).filter(item => item.id !== historyId);
       card.updatedAt = nowISO();
       saveState();
-      toast("历史记录已删除");
-      renderHistory(cardId);
+      toast("已删除");
+      openHistoryModal(cardId);
     }
 
     function clearHistory(cardId) {
       const card = getCard(cardId);
       if (!card) return;
 
-      const ok = confirm(`确定清空「${card.name}」的全部历史记录吗？`);
+      const ok = confirm("确定清空全部历史记录吗？");
       if (!ok) return;
 
       card.history = [];
       card.lastResult = null;
       card.updatedAt = nowISO();
       saveState();
-      toast("历史记录已清空");
-      renderHistory(cardId);
+      toast("已清空");
+      openHistoryModal(cardId);
     }
 
-    function deleteCard(id) {
-      const card = getCard(id);
-      if (!card) return;
+    function openGlobalMore() {
+      openModal(`
+        <div class="modal-head">
+          <div>
+            <h2>更多功能</h2>
+            <p>数据仅保存在当前浏览器本地。</p>
+          </div>
+          <button class="icon-btn" onclick="closeModal()">×</button>
+        </div>
 
-      const ok = confirm(`确定删除「${card.name}」吗？\n删除后名单、规则和历史记录都会被删除。`);
-      if (!ok) return;
-
-      state.cards = state.cards.filter(item => item.id !== id);
-      saveState();
-      toast("卡片已删除");
-      goHome();
-    }
-
-    function duplicateCard(id) {
-      const card = getCard(id);
-      if (!card) return;
-
-      const copy = JSON.parse(JSON.stringify(card));
-      copy.id = uid("card");
-      copy.name = `${card.name} 副本`;
-      copy.filteredIds = [];
-      copy.history = [];
-      copy.lastResult = null;
-      copy.lastUsedAt = null;
-      copy.createdAt = nowISO();
-      copy.updatedAt = nowISO();
-
-      copy.participants = copy.participants.map(p => ({
-        ...p,
-        id: uid("person")
-      }));
-
-      state.cards.push(copy);
-      saveState();
-      toast("卡片已复制");
-      renderHome();
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="openCreateModal()">新建卡片</button>
+          <button onclick="exportAll()">导出全部</button>
+          <button onclick="importFile.click()">导入数据</button>
+          <button class="btn-danger" onclick="clearAllData()">清空全部</button>
+          <button onclick="closeModal()">关闭</button>
+        </div>
+      `);
     }
 
     function exportAll() {
-      const data = {
+      downloadJSON({
         app: "Random Pick",
-        version: 1,
+        version: 2,
         exportedAt: nowISO(),
         cards: state.cards
-      };
-
-      downloadJSON(data, `random-pick-backup-${Date.now()}.json`);
+      }, `random-pick-backup-${Date.now()}.json`);
     }
 
     function exportCard(id) {
       const card = getCard(id);
       if (!card) return;
 
-      const data = {
+      downloadJSON({
         app: "Random Pick",
-        version: 1,
+        version: 2,
         exportedAt: nowISO(),
         card
-      };
-
-      downloadJSON(data, `random-pick-card-${safeFileName(card.name)}-${Date.now()}.json`);
+      }, `random-pick-card-${safeFileName(card.name)}-${Date.now()}.json`);
     }
 
     function downloadJSON(data, filename) {
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json;charset=utf-8"
       });
-
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -1555,14 +1898,15 @@
         const data = JSON.parse(text);
 
         if (Array.isArray(data.cards)) {
-          const ok = confirm("检测到完整备份数据。是否导入并覆盖当前所有数据？");
+          const ok = confirm("检测到完整备份。是否覆盖当前全部数据？");
           if (!ok) return;
 
           state = {
             cards: normalizeCards(data.cards)
           };
           saveState();
-          toast("数据导入完成");
+          closeModal();
+          toast("导入完成");
           goHome();
           return;
         }
@@ -1571,18 +1915,19 @@
           const imported = normalizeCard(data.card);
           imported.id = uid("card");
           imported.name = `${imported.name || "导入卡片"} 导入`;
-          imported.createdAt = nowISO();
-          imported.updatedAt = nowISO();
-
           imported.participants = imported.participants.map(p => ({
             ...p,
             id: uid("person")
           }));
-
           imported.filteredIds = [];
+          imported.lastResult = null;
+          imported.createdAt = nowISO();
+          imported.updatedAt = nowISO();
+
           state.cards.push(imported);
           saveState();
-          toast("卡片导入完成");
+          closeModal();
+          toast("卡片已导入");
           goHome();
           return;
         }
@@ -1590,72 +1935,71 @@
         alert("无法识别的 JSON 文件。");
       } catch (error) {
         console.error(error);
-        alert("导入失败，请确认文件是有效的 JSON 数据。");
+        alert("导入失败，请确认文件是有效 JSON。");
       }
     });
 
-    function normalizeCards(cards) {
-      return cards.map(normalizeCard).filter(Boolean);
+    function clearAllData() {
+      const ok = confirm("确定清空全部卡片和数据吗？此操作不可恢复。");
+      if (!ok) return;
+
+      state = {
+        cards: []
+      };
+      volatileResult = {};
+      saveState();
+      closeModal();
+      toast("已清空");
+      goHome();
     }
 
-    function normalizeCard(card) {
-      const fallback = createDefaultCard();
-      const normalized = {
-        ...fallback,
-        ...card,
-        id: card.id || uid("card"),
-        name: card.name || "未命名卡片",
-        description: card.description || "",
-        color: card.color || "#2563eb",
-        mode: ["one", "multi", "group"].includes(card.mode) ? card.mode : "one",
-        participants: Array.isArray(card.participants) ? card.participants : [],
-        rules: {
-          ...fallback.rules,
-          ...(card.rules || {})
-        },
-        filteredIds: Array.isArray(card.filteredIds) ? card.filteredIds : [],
-        history: Array.isArray(card.history) ? card.history : [],
-        createdAt: card.createdAt || nowISO(),
-        updatedAt: card.updatedAt || nowISO(),
-        lastUsedAt: card.lastUsedAt || null,
-        lastResult: card.lastResult || null
-      };
+    function openModal(html, wide = false) {
+      modal.className = wide ? "modal wide" : "modal";
+      modal.innerHTML = html;
+      modalMask.classList.add("show");
+    }
 
-      normalized.participants = normalized.participants
-        .filter(p => p && p.name)
-        .map(p => ({
-          id: p.id || uid("person"),
-          name: String(p.name).trim(),
-          enabled: p.enabled !== false,
-          note: p.note || ""
-        }));
+    function closeModal() {
+      modalMask.classList.remove("show");
+      modal.innerHTML = "";
+    }
 
-      cleanFilteredIds(normalized);
-      return normalized;
+    function closeModalByMask(event) {
+      if (event.target === modalMask) closeModal();
     }
 
     function goHome() {
-      currentView = { name: "home", id: null };
+      currentView = {
+        name: "home",
+        id: null
+      };
       renderHome();
     }
 
     window.goHome = goHome;
-    window.renderEdit = renderEdit;
+    window.renderHome = renderHome;
     window.renderDraw = renderDraw;
-    window.renderHistory = renderHistory;
-    window.updateRuleVisibility = updateRuleVisibility;
-    window.saveCardFromForm = saveCardFromForm;
+    window.openCreateModal = openCreateModal;
+    window.openEditModal = openEditModal;
+    window.refreshEditRules = refreshEditRules;
+    window.saveEdit = saveEdit;
     window.startDraw = startDraw;
-    window.handleResetFilter = handleResetFilter;
+    window.openCardMore = openCardMore;
+    window.openGlobalMore = openGlobalMore;
+    window.toggleRecordHistory = toggleRecordHistory;
+    window.openHistoryModal = openHistoryModal;
+    window.resetFilter = resetFilter;
+    window.duplicateCard = duplicateCard;
+    window.deleteCard = deleteCard;
     window.deleteHistory = deleteHistory;
     window.clearHistory = clearHistory;
-    window.deleteCard = deleteCard;
-    window.duplicateCard = duplicateCard;
     window.exportAll = exportAll;
     window.exportCard = exportCard;
+    window.clearAllData = clearAllData;
+    window.closeModal = closeModal;
+    window.closeModalByMask = closeModalByMask;
 
     renderHome();
-
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("./sw.js")
@@ -1669,4 +2013,5 @@
     }
   </script>
 </body>
+
 </html>

@@ -1,13 +1,21 @@
-const CACHE_NAME = "handybox-v1";
+const CACHE_NAME = "handybox-v2";
 
 const APP_ASSETS = [
   "./",
-  "./index.html",
-  "./guandan.html",
+  "./bmiCalc.html",
   "./cardBox.html",
   "./dice.html",
+  "./guandan.html",
+  "./index.html",
+  "./lifeCounter.html",
   "./randomPick.html",
+  "./russianRoulette.html",
+  "./passwordGenerator.html",
   "./pomodoro.html",
+  "./qr.html",
+  "./scoreBoard.html",
+  "./spinWheel.html",
+  "./truthOrDare.html",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

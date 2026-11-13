@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>通用记分板 Score Board</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "PingFang SC",
+        "Microsoft YaHei",
+        Arial,
+        sans-serif;
+      color: #fff;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(239, 68, 68, 0.35), transparent 28%),
+        radial-gradient(circle at 85% 90%, rgba(59, 130, 246, 0.35), transparent 32%),
+        linear-gradient(145deg, #020617, #0f172a 50%, #111827);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100dvh;
+      padding:
+        calc(10px + env(safe-area-inset-top))
+        12px
+        calc(10px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .topbar {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title {
+      font-size: clamp(17px, 4vw, 24px);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .status {
+      min-width: 0;
+      text-align: right;
+      font-size: clamp(11px, 2.8vw, 14px);
+      line-height: 1.35;
+      color: #cbd5e1;
+    }
+
+    .board-wrap {
+      min-height: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .board {
+      width: 100%;
+      max-width: 720px;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .team-card {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 30px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      padding: 14px;
+      background: rgba(15, 23, 42, 0.72);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 18px 45px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(14px);
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    .team-card:active {
+      transform: scale(0.985);
+      filter: brightness(1.08);
+    }
+
+    .team-card.red {
+      background:
+        linear-gradient(145deg, rgba(239, 68, 68, 0.95), rgba(127, 29, 29, 0.96));
+    }
+
+    .team-card.blue {
+      background:
+        linear-gradient(145deg, rgba(59, 130, 246, 0.95), rgba(30, 64, 175, 0.96));
+    }
+
+    .team-card::before {
+      content: "";
+      position: absolute;
+      inset: -70%;
+      background:
+        linear-gradient(
+          115deg,
+          transparent 35%,
+          rgba(255, 255, 255, 0.22),
+          transparent 65%
+        );
+      transform: rotate(18deg);
+      animation: shine 7s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shine {
+      from {
+        transform: translateX(-35%) rotate(18deg);
+      }
+
+      to {
+        transform: translateX(35%) rotate(18deg);
+      }
+    }
+
+    .team-head,
+    .score-main,
+    .quick-actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    .team-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .team-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: clamp(18px, 5vw, 28px);
+      font-weight: 1000;
+      letter-spacing: 0.08em;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .edit-hint {
+      flex: 0 0 auto;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      font-size: clamp(10px, 2.6vw, 12px);
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .score-main {
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+    }
+
+    .score {
+      max-width: 100%;
+      font-size: clamp(76px, 30vw, 180px);
+      line-height: 0.92;
+      font-weight: 1000;
+      letter-spacing: -0.05em;
+      text-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
+      white-space: nowrap;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .score-btn {
+      min-height: 42px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      font-size: clamp(18px, 5vw, 24px);
+      font-weight: 1000;
+    }
+
+    .score-btn:active,
+    .toolbar-btn:active,
+    .modal-btn:active {
+      transform: scale(0.96);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      font-size: clamp(40px, 12vw, 72px);
+      line-height: 0.8;
+      font-weight: 1000;
+      color: #f8fafc;
+      text-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .toolbar-btn {
+      min-height: 44px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.13);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+      font-size: clamp(13px, 3.3vw, 16px);
+      font-weight: 900;
+    }
+
+    .toolbar-btn.primary {
+      background: linear-gradient(135deg, #f97316, #dc2626);
+    }
+
+    .toolbar-btn.green {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+    }
+
+    .toolbar-btn.purple {
+      background: linear-gradient(135deg, #a855f7, #7e22ce);
+    }
+
+    .toolbar-btn.gray {
+      background: linear-gradient(135deg, #64748b, #334155);
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(7px);
+    }
+
+    .modal-mask.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      border-radius: 26px;
+      padding: 18px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.18s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0.4;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-title {
+      margin-bottom: 14px;
+      font-size: 20px;
+      font-weight: 1000;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 800;
+    }
+
+    .field input {
+      width: 100%;
+      height: 48px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 15px;
+      outline: none;
+      padding: 0 14px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.09);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .modal-btn {
+      height: 46px;
+      border-radius: 15px;
+      font-size: 16px;
+      font-weight: 1000;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .modal-btn.save {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+    }
+
+    /* 横屏：左右布局 */
+    @media (orientation: landscape), (min-width: 760px) {
+      .app {
+        padding:
+          calc(8px + env(safe-area-inset-top))
+          12px
+          calc(8px + env(safe-area-inset-bottom));
+        gap: 8px;
+      }
+
+      .topbar {
+        min-height: 28px;
+      }
+
+      .title {
+        font-size: clamp(16px, 2.8vw, 22px);
+      }
+
+      .status {
+        font-size: clamp(10px, 1.9vw, 13px);
+      }
+
+      .board {
+        max-width: 1200px;
+        grid-template-rows: none;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .team-card {
+        border-radius: 26px;
+        padding: 12px;
+      }
+
+      .team-name {
+        font-size: clamp(16px, 3.5vw, 26px);
+      }
+
+      .score {
+        font-size: clamp(70px, 19vw, 190px);
+      }
+
+      .score-btn {
+        min-height: 38px;
+        font-size: clamp(16px, 3vw, 22px);
+      }
+
+      .divider {
+        min-width: clamp(42px, 7vw, 82px);
+        font-size: clamp(48px, 10vw, 92px);
+      }
+
+      .toolbar {
+        width: min(720px, 100%);
+        margin: 0 auto;
+      }
+
+      .toolbar-btn {
+        min-height: 38px;
+        border-radius: 14px;
+        font-size: clamp(12px, 2.1vw, 15px);
+      }
+    }
+
+    /* 极矮横屏手机 */
+    @media (orientation: landscape) and (max-height: 430px) {
+      .app {
+        padding:
+          calc(5px + env(safe-area-inset-top))
+          8px
+          calc(5px + env(safe-area-inset-bottom));
+        gap: 5px;
+      }
+
+      .topbar {
+        min-height: 22px;
+      }
+
+      .title {
+        font-size: 15px;
+      }
+
+      .status {
+        font-size: 10px;
+      }
+
+      .board {
+        gap: 7px;
+      }
+
+      .team-card {
+        border-radius: 20px;
+        padding: 8px;
+      }
+
+      .team-head {
+        gap: 5px;
+      }
+
+      .team-name {
+        font-size: clamp(14px, 3vw, 19px);
+        letter-spacing: 0.04em;
+      }
+
+      .edit-hint {
+        display: none;
+      }
+
+      .score {
+        font-size: clamp(58px, 18vw, 128px);
+      }
+
+      .quick-actions {
+        gap: 6px;
+      }
+
+      .score-btn {
+        min-height: 30px;
+        border-radius: 12px;
+        font-size: 15px;
+      }
+
+      .divider {
+        min-width: 34px;
+        font-size: clamp(42px, 9vw, 72px);
+      }
+
+      .toolbar {
+        gap: 6px;
+      }
+
+      .toolbar-btn {
+        min-height: 30px;
+        border-radius: 11px;
+        font-size: 12px;
+      }
+
+      .modal {
+        max-width: 560px;
+        padding: 12px;
+      }
+
+      .modal-title {
+        margin-bottom: 8px;
+        font-size: 17px;
+      }
+
+      .field {
+        margin-bottom: 8px;
+      }
+
+      .field input {
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .modal-actions {
+        margin-top: 10px;
+      }
+
+      .modal-btn {
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="title">Score Board</div>
+      <div class="status">
+        <div id="leadText">双方持平</div>
+        <div id="scoreText">0 : 0</div>
+      </div>
+    </header>
+
+    <section class="board-wrap">
+      <div class="board">
+        <article class="team-card red" id="leftCard" data-team="left">
+          <div class="team-head">
+            <div class="team-name" id="leftName">红队</div>
+            <div class="edit-hint">点击编辑</div>
+          </div>
+
+          <div class="score-main">
+            <div class="score" id="leftScore">0</div>
+          </div>
+
+          <div class="quick-actions">
+            <button class="score-btn" type="button" data-action="dec" data-team="left">−</button>
+            <button class="score-btn" type="button" data-action="inc" data-team="left">＋</button>
+          </div>
+        </article>
+
+        <div class="divider">:</div>
+
+        <article class="team-card blue" id="rightCard" data-team="right">
+          <div class="team-head">
+            <div class="team-name" id="rightName">蓝队</div>
+            <div class="edit-hint">点击编辑</div>
+          </div>
+
+          <div class="score-main">
+            <div class="score" id="rightScore">0</div>
+          </div>
+
+          <div class="quick-actions">
+            <button class="score-btn" type="button" data-action="dec" data-team="right">−</button>
+            <button class="score-btn" type="button" data-action="inc" data-team="right">＋</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="toolbar">
+      <button class="toolbar-btn gray" type="button" id="undoBtn">撤销</button>
+      <button class="toolbar-btn green" type="button" id="swapBtn">交换</button>
+      <button class="toolbar-btn purple" type="button" id="minusBothBtn">双方 -1</button>
+      <button class="toolbar-btn primary" type="button" id="resetBtn">重置</button>
+    </footer>
+  </main>
+
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">编辑</div>
+
+      <div class="field">
+        <label for="nameInput">名称</label>
+        <input id="nameInput" type="text" maxlength="12" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label for="scoreInput">分数</label>
+        <input id="scoreInput" type="number" inputmode="numeric" step="1" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn" type="button" id="cancelBtn">取消</button>
+        <button class="modal-btn save" type="button" id="saveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "generic-score-board-state-v1";
+
+    const defaultState = {
+      left: {
+        name: "红队",
+        score: 0
+      },
+      right: {
+        name: "蓝队",
+        score: 0
+      }
+    };
+
+    let state = loadState();
+    let historyStack = [];
+    let editingTeam = null;
+
+    const els = {
+      leftCard: document.getElementById("leftCard"),
+      rightCard: document.getElementById("rightCard"),
+
+      leftName: document.getElementById("leftName"),
+      rightName: document.getElementById("rightName"),
+
+      leftScore: document.getElementById("leftScore"),
+      rightScore: document.getElementById("rightScore"),
+
+      leadText: document.getElementById("leadText"),
+      scoreText: document.getElementById("scoreText"),
+
+      undoBtn: document.getElementById("undoBtn"),
+      swapBtn: document.getElementById("swapBtn"),
+      minusBothBtn: document.getElementById("minusBothBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+
+      modalMask: document.getElementById("modalMask"),
+      modalTitle: document.getElementById("modalTitle"),
+      nameInput: document.getElementById("nameInput"),
+      scoreInput: document.getElementById("scoreInput"),
+      cancelBtn: document.getElementById("cancelBtn"),
+      saveBtn: document.getElementById("saveBtn")
+    };
+
+    init();
+
+    function init() {
+      bindEvents();
+      render();
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".score-btn").forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+
+          const team = btn.dataset.team;
+          const action = btn.dataset.action;
+
+          if (action === "inc") {
+            changeScore(team, 1);
+          }
+
+          if (action === "dec") {
+            changeScore(team, -1);
+          }
+        });
+      });
+
+      els.leftCard.addEventListener("click", () => openEditor("left"));
+      els.rightCard.addEventListener("click", () => openEditor("right"));
+
+      bindSwipe(els.leftCard, "left");
+      bindSwipe(els.rightCard, "right");
+
+      els.undoBtn.addEventListener("click", undo);
+      els.swapBtn.addEventListener("click", swapTeams);
+      els.minusBothBtn.addEventListener("click", minusBoth);
+      els.resetBtn.addEventListener("click", resetScores);
+
+      els.cancelBtn.addEventListener("click", closeEditor);
+      els.saveBtn.addEventListener("click", saveEditor);
+
+      els.modalMask.addEventListener("click", (event) => {
+        if (event.target === els.modalMask) {
+          closeEditor();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (els.modalMask.classList.contains("show")) {
+          if (event.key === "Escape") closeEditor();
+          if (event.key === "Enter") saveEditor();
+          return;
+        }
+
+        switch (event.key) {
+          case "ArrowUp":
+            changeScore("left", 1);
+            break;
+          case "ArrowDown":
+            changeScore("left", -1);
+            break;
+          case "ArrowRight":
+            changeScore("right", 1);
+            break;
+          case "ArrowLeft":
+            changeScore("right", -1);
+            break;
+          case "Backspace":
+            undo();
+            break;
+          default:
+            break;
+        }
+      });
+    }
+
+    function bindSwipe(element, team) {
+      let startX = 0;
+      let startY = 0;
+      let startTime = 0;
+
+      element.addEventListener("touchstart", (event) => {
+        if (!event.touches || event.touches.length === 0) return;
+
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startTime = Date.now();
+      }, { passive: true });
+
+      element.addEventListener("touchend", (event) => {
+        if (!event.changedTouches || event.changedTouches.length === 0) return;
+
+        const touch = event.changedTouches[0];
+        const diffX = touch.clientX - startX;
+        const diffY = touch.clientY - startY;
+        const elapsed = Date.now() - startTime;
+
+        const isVerticalSwipe = Math.abs(diffY) > 42 && Math.abs(diffY) > Math.abs(diffX) * 1.2;
+        const isQuickEnough = elapsed < 700;
+
+        if (isVerticalSwipe && isQuickEnough) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          if (diffY < 0) {
+            changeScore(team, 1);
+          } else {
+            changeScore(team, -1);
+          }
+        }
+      }, { passive: false });
+    }
+
+    function changeScore(team, delta) {
+      pushHistory();
+
+      state[team].score = normalizeScore(state[team].score + delta);
+      saveState();
+      render();
+    }
+
+    function minusBoth() {
+      pushHistory();
+
+      state.left.score = normalizeScore(state.left.score - 1);
+      state.right.score = normalizeScore(state.right.score - 1);
+
+      saveState();
+      render();
+    }
+
+    function swapTeams() {
+      pushHistory();
+
+      const temp = structuredCloneSafe(state.left);
+      state.left = structuredCloneSafe(state.right);
+      state.right = temp;
+
+      saveState();
+      render();
+    }
+
+    function resetScores() {
+      const ok = confirm("确定要重置双方分数吗？");
+
+      if (!ok) return;
+
+      pushHistory();
+
+      state.left.score = 0;
+      state.right.score = 0;
+
+      saveState();
+      render();
+    }
+
+    function undo() {
+      if (historyStack.length === 0) return;
+
+      state = historyStack.pop();
+      saveState();
+      render();
+    }
+
+    function pushHistory() {
+      historyStack.push(structuredCloneSafe(state));
+
+      if (historyStack.length > 30) {
+        historyStack.shift();
+      }
+    }
+
+    function openEditor(team) {
+      editingTeam = team;
+
+      els.modalTitle.textContent = team === "left" ? "编辑左侧" : "编辑右侧";
+      els.nameInput.value = state[team].name;
+      els.scoreInput.value = state[team].score;
+
+      els.modalMask.classList.add("show");
+
+      setTimeout(() => {
+        els.nameInput.focus();
+        els.nameInput.select();
+      }, 50);
+    }
+
+    function closeEditor() {
+      editingTeam = null;
+      els.modalMask.classList.remove("show");
+    }
+
+    function saveEditor() {
+      if (!editingTeam) return;
+
+      const nextName = els.nameInput.value.trim() || (editingTeam === "left" ? "左队" : "右队");
+      const nextScore = normalizeScore(Number(els.scoreInput.value));
+
+      pushHistory();
+
+      state[editingTeam].name = nextName;
+      state[editingTeam].score = nextScore;
+
+      saveState();
+      render();
+      closeEditor();
+    }
+
+    function render() {
+      els.leftName.textContent = state.left.name;
+      els.rightName.textContent = state.right.name;
+
+      els.leftScore.textContent = state.left.score;
+      els.rightScore.textContent = state.right.score;
+
+      els.scoreText.textContent = `${state.left.score} : ${state.right.score}`;
+
+      const diff = state.left.score - state.right.score;
+
+      if (diff === 0) {
+        els.leadText.textContent = "双方持平";
+      } else if (diff > 0) {
+        els.leadText.textContent = `${state.left.name} 领先 ${diff}`;
+      } else {
+        els.leadText.textContent = `${state.right.name} 领先 ${Math.abs(diff)}`;
+      }
+
+      els.undoBtn.disabled = historyStack.length === 0;
+      els.undoBtn.style.opacity = historyStack.length === 0 ? "0.55" : "1";
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+
+      if (!saved) {
+        return structuredCloneSafe(defaultState);
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        return {
+          left: {
+            name: String(parsed?.left?.name || defaultState.left.name).slice(0, 12),
+            score: normalizeScore(Number(parsed?.left?.score ?? defaultState.left.score))
+          },
+          right: {
+            name: String(parsed?.right?.name || defaultState.right.name).slice(0, 12),
+            score: normalizeScore(Number(parsed?.right?.score ?? defaultState.right.score))
+          }
+        };
+      } catch (error) {
+        console.warn("读取本地记分板数据失败，已使用默认数据。", error);
+        return structuredCloneSafe(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function normalizeScore(value) {
+      if (!Number.isFinite(value)) return 0;
+
+      const integer = Math.trunc(value);
+
+      return clamp(integer, -9999, 9999);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function structuredCloneSafe(value) {
+      if (typeof structuredClone === "function") {
+        return structuredClone(value);
+      }
+
+      return JSON.parse(JSON.stringify(value));
+    }
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+          .then(function () {
+            console.log("Service Worker 注册成功");
+          })
+          .catch(function (error) {
+            console.warn("Service Worker 注册失败", error);
+          });
+      });
+    }
+  </script>
+</body>
+
+</html>

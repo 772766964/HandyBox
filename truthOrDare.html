@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Truth or Dare / 真心话大冒险</title>
+    <style>
+        :root {
+            --bg: #111827;
+            --bg-2: #1f2937;
+            --card: rgba(255, 255, 255, 0.1);
+            --card-strong: rgba(255, 255, 255, 0.16);
+            --text: #f9fafb;
+            --muted: #cbd5e1;
+            --line: rgba(255, 255, 255, 0.16);
+            --truth: #38bdf8;
+            --dare: #fb7185;
+            --accent: #a78bfa;
+            --good: #34d399;
+            --warn: #fbbf24;
+            --danger: #fb7185;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.24), transparent 28%),
+                radial-gradient(circle at 80% 0%, rgba(251, 113, 133, 0.22), transparent 26%),
+                radial-gradient(circle at 50% 90%, rgba(167, 139, 250, 0.20), transparent 30%),
+                var(--bg);
+            color: var(--text);
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                "PingFang SC",
+                "Hiragino Sans GB",
+                "Microsoft YaHei",
+                Arial,
+                sans-serif;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .app {
+            width: 100%;
+            max-width: 860px;
+            height: 100svh;
+            margin: 0 auto;
+            padding:
+                max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .topbar {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .brand {
+            min-width: 0;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(20px, 5vw, 32px);
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .icon-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            background: var(--card);
+            backdrop-filter: blur(14px);
+            box-shadow: var(--shadow);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .game {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 10px;
+        }
+
+        .toolbar {
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .select-wrap {
+            min-width: 0;
+        }
+
+        .select-label {
+            display: block;
+            margin: 0 0 5px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.82);
+            color: var(--text);
+            outline: none;
+        }
+
+        select,
+        input {
+            height: 42px;
+            padding: 0 12px;
+        }
+
+        textarea {
+            min-height: 86px;
+            padding: 12px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        .stats {
+            text-align: right;
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            line-height: 1.5;
+        }
+
+        .card-area {
+            min-height: 0;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-badge {
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .type-badge.truth {
+            color: #e0f2fe;
+            background: rgba(56, 189, 248, 0.22);
+        }
+
+        .type-badge.dare {
+            color: #ffe4e6;
+            background: rgba(251, 113, 133, 0.22);
+        }
+
+        .prompt {
+            flex: 0 1 auto;
+            max-height: 100%;
+            overflow: auto;
+            font-size: clamp(25px, 7vw, 46px);
+            line-height: 1.18;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            word-break: break-word;
+            scrollbar-width: thin;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .main-button {
+            min-height: 56px;
+            padding: 10px 8px;
+            border-radius: 18px;
+            font-weight: 900;
+            font-size: clamp(14px, 4vw, 18px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+            transition: transform 0.08s ease, filter 0.18s ease;
+        }
+
+        .main-button:active {
+            transform: scale(0.97);
+        }
+
+        .btn-truth {
+            background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        }
+
+        .btn-dare {
+            background: linear-gradient(135deg, #f43f5e, #fb7185);
+        }
+
+        .bottom {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .history {
+            min-width: 0;
+            padding: 10px 12px;
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .secondary-button {
+            min-height: 42px;
+            padding: 0 14px;
+            border-radius: 15px;
+            background: var(--card-strong);
+            border: 1px solid var(--line);
+            font-weight: 800;
+        }
+
+        dialog {
+            width: min(760px, calc(100vw - 20px));
+            max-height: min(88svh, 760px);
+            padding: 0;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: #111827;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.62);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            display: flex;
+            flex-direction: column;
+            max-height: min(88svh, 760px);
+        }
+
+        .modal-header {
+            flex: 0 0 auto;
+            padding: 14px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            padding: 14px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .section {
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .section h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .form-row {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 10px;
+        }
+
+        .form-row label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .mini-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mini-button {
+            min-height: 38px;
+            padding: 0 12px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--line);
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .mini-button.good {
+            background: rgba(52, 211, 153, 0.22);
+        }
+
+        .mini-button.warn {
+            background: rgba(251, 191, 36, 0.22);
+        }
+
+        .mini-button.danger {
+            background: rgba(251, 113, 133, 0.22);
+        }
+
+        .card-list {
+            display: grid;
+            gap: 8px;
+            max-height: 310px;
+            overflow: auto;
+            padding-right: 2px;
+        }
+
+        .card-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px;
+            align-items: start;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.075);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .small-badge {
+            padding: 4px 7px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .small-badge.truth {
+            background: rgba(56, 189, 248, 0.20);
+            color: #bae6fd;
+        }
+
+        .small-badge.dare {
+            background: rgba(251, 113, 133, 0.20);
+            color: #fecdd3;
+        }
+
+        .card-text {
+            min-width: 0;
+            color: #f8fafc;
+            line-height: 1.45;
+            word-break: break-word;
+            font-size: 14px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tiny {
+            min-height: 30px;
+            padding: 0 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--line);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tiny.danger {
+            background: rgba(251, 113, 133, 0.18);
+        }
+
+        .empty {
+            padding: 14px;
+            color: var(--muted);
+            text-align: center;
+            border: 1px dashed var(--line);
+            border-radius: 14px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 420px) {
+            .brand p {
+                display: none;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                display: flex;
+                justify-content: space-between;
+                text-align: left;
+            }
+
+            .prompt {
+                font-size: clamp(24px, 8vw, 36px);
+            }
+
+            .main-button {
+                min-height: 54px;
+            }
+
+            .bottom {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom .secondary-button {
+                width: 100%;
+            }
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .card-item {
+                grid-template-columns: auto 1fr;
+            }
+
+            .item-actions {
+                grid-column: 1 / -1;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 540px) {
+            .app {
+                max-width: none;
+                gap: 8px;
+            }
+
+            .topbar {
+                grid-template-columns: 1fr auto;
+            }
+
+            .brand h1 {
+                font-size: clamp(18px, 3vw, 24px);
+            }
+
+            .brand p {
+                display: none;
+            }
+
+            .game {
+                grid-template-columns: 320px 1fr;
+                grid-template-rows: auto 1fr;
+                gap: 8px;
+            }
+
+            .toolbar {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .actions {
+                grid-column: 1;
+                grid-row: 2;
+                grid-template-columns: 1fr;
+                align-self: stretch;
+            }
+
+            .main-button {
+                min-height: 0;
+            }
+
+            .card-area {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+                padding: 16px;
+            }
+
+            .prompt {
+                font-size: clamp(28px, 5vw, 48px);
+            }
+
+            .bottom {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <h1>Truth or Dare</h1>
+                <p>真心话大冒险 · 支持自定义话术与牌组</p>
+            </div>
+            <button class="icon-button" id="openManagerBtn" aria-label="管理话术">⚙️</button>
+        </header>
+
+        <main class="game">
+            <section class="toolbar panel">
+                <div class="select-wrap">
+                    <label class="select-label" for="packSelect">当前牌组</label>
+                    <select id="packSelect"></select>
+                </div>
+                <div class="stats">
+                    <div id="truthCount">真心话 0</div>
+                    <div id="dareCount">大冒险 0</div>
+                </div>
+            </section>
+
+            <section class="card-area panel" aria-live="polite">
+                <div class="type-badge" id="cardType">READY</div>
+                <div class="prompt" id="promptText">
+                    选择一个模式，开始真心话大冒险。
+                </div>
+                <div class="hint" id="promptHint">
+                    提示：点击右上角可以新增、编辑、删除牌组和话术。
+                </div>
+            </section>
+
+            <section class="actions panel">
+                <button class="main-button btn-truth" id="truthBtn">真心话</button>
+                <button class="main-button btn-random" id="randomBtn">随机</button>
+                <button class="main-button btn-dare" id="dareBtn">大冒险</button>
+            </section>
+        </main>
+
+        <footer class="bottom">
+            <div class="history panel" id="historyText">暂无历史记录</div>
+            <button class="secondary-button" id="quickManageBtn">管理话术</button>
+        </footer>
+    </div>
+
+    <dialog id="managerDialog">
+        <div class="modal">
+            <header class="modal-header">
+                <h2>话术管理</h2>
+                <button class="icon-button" id="closeManagerBtn" aria-label="关闭">✕</button>
+            </header>
+
+            <div class="modal-body">
+                <section class="section">
+                    <h3>牌组管理</h3>
+
+                    <div class="form-row">
+                        <label for="managePackSelect">选择牌组</label>
+                        <select id="managePackSelect"></select>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-row" style="margin-bottom:0;">
+                            <label for="packNameInput">牌组名称</label>
+                            <input id="packNameInput" placeholder="例如：朋友聚会" />
+                        </div>
+                        <button class="mini-button good" id="renamePackBtn">保存名称</button>
+                        <button class="mini-button danger" id="deletePackBtn">删除牌组</button>
+                    </div>
+
+                    <div class="mini-buttons" style="margin-top:10px;">
+                        <button class="mini-button good" id="newPackBtn">新增牌组</button>
+                        <button class="mini-button warn" id="resetDefaultBtn">恢复默认预设</button>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h3 id="cardFormTitle">新增话术</h3>
+
+                    <div class="grid-2">
+                        <div class="form-row">
+                            <label for="cardTypeSelect">类型</label>
+                            <select id="cardTypeSelect">
+                                <option value="truth">真心话 Truth</option>
+                                <option value="dare">大冒险 Dare</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <label for="cardFilterSelect">列表筛选</label>
+                            <select id="cardFilterSelect">
+                                <option value="all">全部</option>
+                                <option value="truth">只看真心话</option>
+                                <option value="dare">只看大冒险</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="cardTextInput">话术内容</label>
+                        <textarea id="cardTextInput" placeholder="输入新的真心话或大冒险内容"></textarea>
+                    </div>
+
+                    <div class="mini-buttons">
+                        <button class="mini-button good" id="saveCardBtn">新增话术</button>
+                        <button class="mini-button" id="cancelEditBtn">取消编辑</button>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h3>当前牌组话术</h3>
+                    <div class="card-list" id="cardList"></div>
+                </section>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        const STORAGE_KEY = "truth-or-dare-packs-v2";
+        const ACTIVE_PACK_KEY = "truth-or-dare-active-pack-v2";
+
+        const DEFAULT_PACKS = [
+            {
+                id: "classic",
+                name: "经典破冰",
+                cards: [
+                    {type: "truth", text: "你最近一次真正开心，是因为什么？"},
+                    {type: "truth", text: "如果可以重来一次，你最想改变哪件小事？"},
+                    {type: "truth", text: "你小时候做过最中二的一件事是什么？"},
+                    {type: "truth", text: "你最容易被哪种夸奖打动？"},
+                    {type: "truth", text: "你手机里最近一张照片是什么？可以描述一下。"},
+                    {type: "truth", text: "你最不擅长拒绝别人什么请求？"},
+                    {type: "truth", text: "你对自己的第一印象通常是什么？"},
+                    {type: "truth", text: "最近有没有一件事让你觉得自己变成熟了？"},
+                    {type: "dare", text: "用三种不同语气说一句：我今天真的很开心。"},
+                    {type: "dare", text: "对左边的人真诚夸奖 20 秒。"},
+                    {type: "dare", text: "模仿一个你熟悉的表情包动作。"},
+                    {type: "dare", text: "用播音腔介绍一下当前房间。"},
+                    {type: "dare", text: "摆一个自认为最帅或最美的姿势，坚持 5 秒。"},
+                    {type: "dare", text: "随机找一个物品，为它即兴打广告 30 秒。"},
+                    {type: "dare", text: "用夸张方式演出收到惊喜礼物的反应。"},
+                    {type: "dare", text: "和任意一位玩家完成一次默契击掌。"}
+                ]
+            },
+            {
+                id: "friends",
+                name: "朋友聚会",
+                cards: [
+                    {type: "truth", text: "在场的人里，谁最像你的旅行搭子？为什么？"},
+                    {type: "truth", text: "你和朋友相处时最看重哪一点？"},
+                    {type: "truth", text: "你见过朋友最反差的一面是什么？"},
+                    {type: "truth", text: "如果给在场某个人颁一个奖，你会颁什么奖？"},
+                    {type: "truth", text: "你最想和朋友一起完成的一件事是什么？"},
+                    {type: "truth", text: "你觉得自己在朋友圈里通常是什么角色？"},
+                    {type: "truth", text: "你最难忘的一次朋友聚会是什么？"},
+                    {type: "truth", text: "你有因为朋友一句话被治愈过吗？"},
+                    {type: "dare", text: "和右边的人一起比一个双人 pose。"},
+                    {type: "dare", text: "现场给某位朋友取一个可爱的外号，并解释原因。"},
+                    {type: "dare", text: "用一句歌词形容今天的聚会。"},
+                    {type: "dare", text: "让大家投票选一个动作，你来模仿 10 秒。"},
+                    {type: "dare", text: "随机点一位玩家，和 TA 互相夸奖一句。"},
+                    {type: "dare", text: "用东北话、粤语腔或夹子音任选一种说一句祝福。"},
+                    {type: "dare", text: "闭眼从 1 数到 10，大家换位置后猜谁坐在你左边。"},
+                    {type: "dare", text: "给这场聚会起一个电影名。"}
+                ]
+            },
+            {
+                id: "couple",
+                name: "情侣甜蜜",
+                cards: [
+                    {type: "truth", text: "第一次对对方心动，是哪个瞬间？"},
+                    {type: "truth", text: "你最喜欢对方身上的哪个小习惯？"},
+                    {type: "truth", text: "你希望对方更常对你说哪句话？"},
+                    {type: "truth", text: "最近对方做过最让你暖心的一件事是什么？"},
+                    {type: "truth", text: "如果安排一次约会，你最想去哪里？"},
+                    {type: "truth", text: "你觉得你们最有默契的地方是什么？"},
+                    {type: "truth", text: "你希望一起培养一个什么共同习惯？"},
+                    {type: "truth", text: "用三个词形容你眼中的对方。"},
+                    {type: "dare", text: "看着对方眼睛，认真夸奖 TA 15 秒。"},
+                    {type: "dare", text: "给对方设计一个专属昵称。"},
+                    {type: "dare", text: "和对方完成一次十指相扣 10 秒。"},
+                    {type: "dare", text: "用撒娇语气说一句：今天辛苦啦。"},
+                    {type: "dare", text: "给对方一个温柔的拥抱。"},
+                    {type: "dare", text: "一起比一个爱心手势并保持 5 秒。"},
+                    {type: "dare", text: "现场为对方许一个小愿望。"},
+                    {type: "dare", text: "用一句话描述你们的下一次约会。"}
+                ]
+            },
+            {
+                id: "funny",
+                name: "轻松搞笑",
+                cards: [
+                    {type: "truth", text: "你做过最离谱但当时觉得很合理的事是什么？"},
+                    {type: "truth", text: "你有没有被自己的操作蠢笑过？"},
+                    {type: "truth", text: "你最想拥有哪种没什么用但很酷的超能力？"},
+                    {type: "truth", text: "如果你的生活是一档综艺，名字叫什么？"},
+                    {type: "truth", text: "你最无法理解但又觉得好笑的流行语是什么？"},
+                    {type: "truth", text: "你最像哪种动物？为什么？"},
+                    {type: "truth", text: "你有没有一本正经胡说八道成功过？"},
+                    {type: "truth", text: "如果你变成表情包，会配什么文字？"},
+                    {type: "dare", text: "用机器人语气介绍自己 20 秒。"},
+                    {type: "dare", text: "表演一种动物走路，让大家猜。"},
+                    {type: "dare", text: "用夸张表情演出：手机只剩 1% 电。"},
+                    {type: "dare", text: "给空气朋友打一个 20 秒电话。"},
+                    {type: "dare", text: "用严肃语气讲一个冷笑话。"},
+                    {type: "dare", text: "把一句普通的话说得像电视剧预告片。"},
+                    {type: "dare", text: "模仿导航语音指挥大家鼓掌。"},
+                    {type: "dare", text: "即兴为自己写一句广告词。"}
+                ]
+            },
+            {
+                id: "deep",
+                name: "深夜走心",
+                cards: [
+                    {type: "truth", text: "你最近最想感谢的人是谁？为什么？"},
+                    {type: "truth", text: "你现在最想对过去的自己说什么？"},
+                    {type: "truth", text: "有没有一个瞬间让你觉得自己被理解了？"},
+                    {type: "truth", text: "你目前最想实现的一个小目标是什么？"},
+                    {type: "truth", text: "你最害怕失去什么？"},
+                    {type: "truth", text: "最近有没有一件事让你重新认识自己？"},
+                    {type: "truth", text: "你希望别人如何安慰你？"},
+                    {type: "truth", text: "什么样的关系会让你觉得很安心？"},
+                    {type: "dare", text: "对自己说一句鼓励的话。"},
+                    {type: "dare", text: "给在场一位玩家送上一句真诚祝福。"},
+                    {type: "dare", text: "闭眼深呼吸 5 秒，然后说出此刻的感受。"},
+                    {type: "dare", text: "分享一个你最近收藏的句子或歌词。"},
+                    {type: "dare", text: "用一句话感谢今天的自己。"},
+                    {type: "dare", text: "说出一个你想慢慢变好的地方。"},
+                    {type: "dare", text: "给未来一个月的自己定一个温柔任务。"},
+                    {type: "dare", text: "选一位玩家，说出你欣赏 TA 的一个原因。"}
+                ]
+            }
+        ];
+
+        const $ = (id) => document.getElementById(id);
+
+        const els = {
+            packSelect: $("packSelect"),
+            truthCount: $("truthCount"),
+            dareCount: $("dareCount"),
+            cardType: $("cardType"),
+            promptText: $("promptText"),
+            promptHint: $("promptHint"),
+            historyText: $("historyText"),
+
+            truthBtn: $("truthBtn"),
+            randomBtn: $("randomBtn"),
+            dareBtn: $("dareBtn"),
+
+            openManagerBtn: $("openManagerBtn"),
+            quickManageBtn: $("quickManageBtn"),
+            managerDialog: $("managerDialog"),
+            closeManagerBtn: $("closeManagerBtn"),
+
+            managePackSelect: $("managePackSelect"),
+            packNameInput: $("packNameInput"),
+            renamePackBtn: $("renamePackBtn"),
+            deletePackBtn: $("deletePackBtn"),
+            newPackBtn: $("newPackBtn"),
+            resetDefaultBtn: $("resetDefaultBtn"),
+
+            cardFormTitle: $("cardFormTitle"),
+            cardTypeSelect: $("cardTypeSelect"),
+            cardFilterSelect: $("cardFilterSelect"),
+            cardTextInput: $("cardTextInput"),
+            saveCardBtn: $("saveCardBtn"),
+            cancelEditBtn: $("cancelEditBtn"),
+            cardList: $("cardList")
+        };
+
+        let packs = loadPacks();
+        let activePackId = localStorage.getItem(ACTIVE_PACK_KEY) || packs[0]?.id;
+        let managePackId = activePackId;
+        let editingCardId = null;
+        let currentCardId = null;
+        let history = [];
+
+        function uid() {
+            if (crypto && crypto.randomUUID) return crypto.randomUUID();
+            return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+        }
+
+        function clone(value) {
+            return JSON.parse(JSON.stringify(value));
+        }
+
+        function getDefaultPacks() {
+            return clone(DEFAULT_PACKS).map((pack) => ({
+                ...pack,
+                cards: pack.cards.map((card) => ({
+                    id: uid(),
+                    ...card
+                }))
+            }));
+        }
+
+        function normalizePacks(raw) {
+            if (!Array.isArray(raw)) return getDefaultPacks();
+
+            const normalized = raw
+                .filter((pack) => pack && typeof pack === "object")
+                .map((pack) => ({
+                    id: pack.id || uid(),
+                    name: String(pack.name || "未命名牌组"),
+                    cards: Array.isArray(pack.cards)
+                        ? pack.cards
+                            .filter((card) => card && typeof card.text === "string")
+                            .map((card) => ({
+                                id: card.id || uid(),
+                                type: card.type === "dare" ? "dare" : "truth",
+                                text: card.text.trim()
+                            }))
+                            .filter((card) => card.text)
+                        : []
+                }));
+
+            return normalized.length ? normalized : getDefaultPacks();
+        }
+
+        function loadPacks() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                return normalizePacks(saved);
+            } catch {
+                return getDefaultPacks();
+            }
+        }
+
+        function savePacks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
+            localStorage.setItem(ACTIVE_PACK_KEY, activePackId);
+        }
+
+        function getPack(id = activePackId) {
+            return packs.find((pack) => pack.id === id) || packs[0];
+        }
+
+        function getCounts(pack) {
+            return {
+                truth: pack.cards.filter((card) => card.type === "truth").length,
+                dare: pack.cards.filter((card) => card.type === "dare").length
+            };
+        }
+
+        function renderMain() {
+            if (!packs.length) {
+                packs = getDefaultPacks();
+            }
+
+            if (!getPack(activePackId)) {
+                activePackId = packs[0].id;
+            }
+
+            els.packSelect.innerHTML = packs
+                .map((pack) => `<option value="${escapeHtml(pack.id)}">${escapeHtml(pack.name)}</option>`)
+                .join("");
+
+            els.packSelect.value = activePackId;
+
+            const pack = getPack(activePackId);
+            const counts = getCounts(pack);
+
+            els.truthCount.textContent = `真心话 ${counts.truth}`;
+            els.dareCount.textContent = `大冒险 ${counts.dare}`;
+        }
+
+        function renderHistory() {
+            if (!history.length) {
+                els.historyText.textContent = "暂无历史记录";
+                return;
+            }
+
+            els.historyText.textContent = "最近：" + history
+                .slice(0, 3)
+                .map((item) => `${item.type === "truth" ? "真心话" : "大冒险"}：${item.text}`)
+                .join(" / ");
+        }
+
+        function drawCard(type) {
+            const pack = getPack(activePackId);
+            let pool = pack.cards.filter((card) => {
+                if (type === "random") return true;
+                return card.type === type;
+            });
+
+            if (!pool.length) {
+                showSystemCard(
+                    "EMPTY",
+                    `当前牌组没有${type === "dare" ? "大冒险" : type === "truth" ? "真心话" : "可用"}话术。`,
+                    "请点击右上角进入管理，新增话术或切换牌组。"
+                );
+                return;
+            }
+
+            if (pool.length > 1 && currentCardId) {
+                const withoutCurrent = pool.filter((card) => card.id !== currentCardId);
+                if (withoutCurrent.length) pool = withoutCurrent;
+            }
+
+            const card = pool[Math.floor(Math.random() * pool.length)];
+            currentCardId = card.id;
+
+            els.cardType.className = `type-badge ${card.type}`;
+            els.cardType.textContent = card.type === "truth" ? "TRUTH · 真心话" : "DARE · 大冒险";
+            els.promptText.textContent = card.text;
+            els.promptHint.textContent = `来自牌组：${pack.name}`;
+
+            history.unshift({
+                type: card.type,
+                text: card.text
+            });
+
+            history = history.slice(0, 8);
+            renderHistory();
+        }
+
+        function showSystemCard(type, text, hint) {
+            els.cardType.className = "type-badge";
+            els.cardType.textContent = type;
+            els.promptText.textContent = text;
+            els.promptHint.textContent = hint || "";
+        }
+
+        function renderManager() {
+            if (!getPack(managePackId)) {
+                managePackId = activePackId;
+            }
+
+            if (!getPack(managePackId)) {
+                managePackId = packs[0]?.id;
+            }
+
+            els.managePackSelect.innerHTML = packs
+                .map((pack) => `<option value="${escapeHtml(pack.id)}">${escapeHtml(pack.name)}</option>`)
+                .join("");
+
+            els.managePackSelect.value = managePackId;
+
+            const pack = getPack(managePackId);
+            els.packNameInput.value = pack?.name || "";
+
+            renderCardList();
+        }
+
+        function renderCardList() {
+            const pack = getPack(managePackId);
+            if (!pack) {
+                els.cardList.innerHTML = `<div class="empty">暂无牌组</div>`;
+                return;
+            }
+
+            const filter = els.cardFilterSelect.value;
+            const cards = pack.cards.filter((card) => filter === "all" || card.type === filter);
+
+            if (!cards.length) {
+                els.cardList.innerHTML = `<div class="empty">当前筛选下没有话术，可以在上方新增。</div>`;
+                return;
+            }
+
+            els.cardList.innerHTML = "";
+
+            cards.forEach((card) => {
+                const item = document.createElement("div");
+                item.className = "card-item";
+
+                item.innerHTML = `
+          <span class="small-badge ${card.type}">
+            ${card.type === "truth" ? "真心话" : "大冒险"}
+          </span>
+          <div class="card-text">${escapeHtml(card.text)}</div>
+          <div class="item-actions">
+            <button class="tiny" data-action="edit" data-id="${escapeHtml(card.id)}">编辑</button>
+            <button class="tiny danger" data-action="delete" data-id="${escapeHtml(card.id)}">删除</button>
+          </div>
+        `;
+
+                els.cardList.appendChild(item);
+            });
+        }
+
+        function resetCardForm() {
+            editingCardId = null;
+            els.cardFormTitle.textContent = "新增话术";
+            els.saveCardBtn.textContent = "新增话术";
+            els.cardTextInput.value = "";
+            els.cardTypeSelect.value = "truth";
+        }
+
+        function saveCard() {
+            const pack = getPack(managePackId);
+            if (!pack) return;
+
+            const text = els.cardTextInput.value.trim();
+            const type = els.cardTypeSelect.value === "dare" ? "dare" : "truth";
+
+            if (!text) {
+                alert("请先输入话术内容。");
+                return;
+            }
+
+            if (editingCardId) {
+                const card = pack.cards.find((item) => item.id === editingCardId);
+                if (card) {
+                    card.type = type;
+                    card.text = text;
+                }
+            } else {
+                pack.cards.push({
+                    id: uid(),
+                    type,
+                    text
+                });
+            }
+
+            savePacks();
+            resetCardForm();
+            renderMain();
+            renderManager();
+        }
+
+        function editCard(cardId) {
+            const pack = getPack(managePackId);
+            const card = pack?.cards.find((item) => item.id === cardId);
+            if (!card) return;
+
+            editingCardId = card.id;
+            els.cardFormTitle.textContent = "编辑话术";
+            els.saveCardBtn.textContent = "保存修改";
+            els.cardTypeSelect.value = card.type;
+            els.cardTextInput.value = card.text;
+            els.cardTextInput.focus();
+        }
+
+        function deleteCard(cardId) {
+            const pack = getPack(managePackId);
+            if (!pack) return;
+
+            const card = pack.cards.find((item) => item.id === cardId);
+            if (!card) return;
+
+            if (!confirm(`确定删除这条话术吗？\n\n${card.text}`)) return;
+
+            pack.cards = pack.cards.filter((item) => item.id !== cardId);
+
+            if (editingCardId === cardId) {
+                resetCardForm();
+            }
+
+            savePacks();
+            renderMain();
+            renderManager();
+        }
+
+        function createPack() {
+            const name = prompt("请输入新牌组名称：", "我的牌组");
+            if (!name || !name.trim()) return;
+
+            const pack = {
+                id: uid(),
+                name: name.trim(),
+                cards: []
+            };
+
+            packs.push(pack);
+            activePackId = pack.id;
+            managePackId = pack.id;
+
+            savePacks();
+            resetCardForm();
+            renderMain();
+            renderManager();
+            showSystemCard("NEW PACK", `已创建牌组：${pack.name}`, "现在可以进入管理添加真心话和大冒险。");
+        }
+
+        function renamePack() {
+            const pack = getPack(managePackId);
+            if (!pack) return;
+
+            const name = els.packNameInput.value.trim();
+            if (!name) {
+                alert("牌组名称不能为空。");
+                return;
+            }
+
+            pack.name = name;
+            savePacks();
+            renderMain();
+            renderManager();
+        }
+
+        function deletePack() {
+            const pack = getPack(managePackId);
+            if (!pack) return;
+
+            if (packs.length <= 1) {
+                alert("至少需要保留一个牌组。");
+                return;
+            }
+
+            if (!confirm(`确定删除牌组「${pack.name}」吗？\n该牌组下的所有话术都会删除。`)) return;
+
+            packs = packs.filter((item) => item.id !== pack.id);
+
+            activePackId = packs[0].id;
+            managePackId = activePackId;
+
+            savePacks();
+            resetCardForm();
+            renderMain();
+            renderManager();
+            showSystemCard("PACK DELETED", "牌组已删除。", "你可以继续选择其他牌组进行游戏。");
+        }
+
+        function resetDefaults() {
+            if (!confirm("确定恢复默认预设吗？\n当前自定义牌组和话术会被覆盖。")) return;
+
+            packs = getDefaultPacks();
+            activePackId = packs[0].id;
+            managePackId = activePackId;
+            history = [];
+            currentCardId = null;
+
+            savePacks();
+            resetCardForm();
+            renderMain();
+            renderManager();
+            renderHistory();
+            showSystemCard("RESET", "已恢复默认预设。", "可以直接开始游戏，或继续编辑话术。");
+        }
+
+        function openManager() {
+            managePackId = activePackId;
+            renderManager();
+
+            if (typeof els.managerDialog.showModal === "function") {
+                els.managerDialog.showModal();
+            } else {
+                alert("当前浏览器不支持弹窗管理，请升级浏览器。");
+            }
+        }
+
+        function closeManager() {
+            els.managerDialog.close();
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        els.truthBtn.addEventListener("click", () => drawCard("truth"));
+        els.randomBtn.addEventListener("click", () => drawCard("random"));
+        els.dareBtn.addEventListener("click", () => drawCard("dare"));
+
+        els.packSelect.addEventListener("change", () => {
+            activePackId = els.packSelect.value;
+            savePacks();
+            renderMain();
+
+            const pack = getPack(activePackId);
+            showSystemCard("READY", `已切换到：${pack.name}`, "选择一个模式，开始真心话大冒险。");
+        });
+
+        els.openManagerBtn.addEventListener("click", openManager);
+        els.quickManageBtn.addEventListener("click", openManager);
+        els.closeManagerBtn.addEventListener("click", closeManager);
+
+        els.managerDialog.addEventListener("click", (event) => {
+            if (event.target === els.managerDialog) {
+                closeManager();
+            }
+        });
+
+        els.managePackSelect.addEventListener("change", () => {
+            managePackId = els.managePackSelect.value;
+            resetCardForm();
+            renderManager();
+        });
+
+        els.renamePackBtn.addEventListener("click", renamePack);
+        els.deletePackBtn.addEventListener("click", deletePack);
+        els.newPackBtn.addEventListener("click", createPack);
+        els.resetDefaultBtn.addEventListener("click", resetDefaults);
+
+        els.saveCardBtn.addEventListener("click", saveCard);
+        els.cancelEditBtn.addEventListener("click", resetCardForm);
+
+        els.cardFilterSelect.addEventListener("change", renderCardList);
+
+        els.cardList.addEventListener("click", (event) => {
+            const button = event.target.closest("button[data-action]");
+            if (!button) return;
+
+            const action = button.dataset.action;
+            const id = button.dataset.id;
+
+            if (action === "edit") editCard(id);
+            if (action === "delete") deleteCard(id);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && els.managerDialog.open) {
+                closeManager();
+            }
+
+            if (els.managerDialog.open) return;
+
+            if (event.key === "1") drawCard("truth");
+            if (event.key === "2") drawCard("random");
+            if (event.key === "3") drawCard("dare");
+        });
+
+        renderMain();
+        renderHistory();
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("./sw.js")
+                    .then(function () {
+                        console.log("Service Worker 注册成功");
+                    })
+                    .catch(function (error) {
+                        console.warn("Service Worker 注册失败", error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

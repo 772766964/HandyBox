@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
@@ -129,12 +130,10 @@
       content: "";
       position: absolute;
       inset: -60%;
-      background: linear-gradient(
-        120deg,
-        transparent 35%,
-        rgba(255, 255, 255, 0.26),
-        transparent 65%
-      );
+      background: linear-gradient(120deg,
+          transparent 35%,
+          rgba(255, 255, 255, 0.26),
+          transparent 65%);
       transform: rotate(20deg);
       animation: shine 5s linear infinite;
     }
@@ -236,7 +235,8 @@
     }
 
     /* 横屏或者较宽屏幕：x : y 横向展示 */
-    @media (orientation: landscape) and (max-height: 620px), (min-width: 760px) {
+    @media (orientation: landscape) and (max-height: 620px),
+    (min-width: 760px) {
       .app {
         padding: 10px 14px;
         padding-bottom: calc(22px + env(safe-area-inset-bottom));
@@ -507,7 +507,6 @@
   <main class="app">
     <header class="header">
       <div>
-        <a class="home-link" href="./index.html">HandyBox</a>
         <div class="title">掼蛋计分器</div>
       </div>
       <div class="status">
@@ -618,7 +617,7 @@
 
         startY = event.touches[0].clientY;
         startX = event.touches[0].clientX;
-      }, { passive: true });
+      }, {passive: true});
 
       element.addEventListener("touchend", function (event) {
         if (!event.changedTouches || event.changedTouches.length === 0) return;
@@ -640,7 +639,7 @@
           event.preventDefault();
           event.stopPropagation();
         }
-      }, { passive: false });
+      }, {passive: false});
     }
 
     function openModal(team) {
@@ -775,7 +774,7 @@
     function pad(value) {
       return String(value).padStart(2, "0");
     }
-    
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("./sw.js")

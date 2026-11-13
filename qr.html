@@ -1,0 +1,1263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>QR Code Generator / 二维码生成器</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --text: #f9fafb;
+      --muted: #a7b0c0;
+      --border: rgba(255, 255, 255, 0.14);
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #fb7185;
+      --qr-bg: #ffffff;
+      --qr-fg: #020617;
+      --radius: 18px;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.24), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.18), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Microsoft YaHei",
+        Arial,
+        sans-serif;
+    }
+
+    body {
+      min-height: 100dvh;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+      overflow-x: hidden;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      min-height: calc(100dvh - 24px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(20px, 5vw, 34px);
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: clamp(12px, 2.8vw, 14px);
+      line-height: 1.35;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(300px, 0.9fr) minmax(280px, 1.1fr);
+      gap: 12px;
+    }
+
+    .card {
+      min-height: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      gap: 10px;
+      padding: clamp(12px, 2vw, 18px);
+      overflow: hidden;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    label,
+    .label {
+      color: #dbe4f0;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    textarea,
+    select,
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      outline: none;
+      background: rgba(2, 6, 23, 0.42);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 116px;
+      max-height: 34dvh;
+      resize: vertical;
+      padding: 13px 14px;
+      line-height: 1.45;
+      font-size: 16px;
+    }
+
+    textarea::placeholder {
+      color: rgba(167, 176, 192, 0.82);
+    }
+
+    select,
+    input[type="text"] {
+      height: 42px;
+      padding: 0 12px;
+    }
+
+    textarea:focus,
+    select:focus,
+    input[type="text"]:focus {
+      border-color: rgba(56, 189, 248, 0.72);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checkline {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .checkline input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      align-self: end;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button.primary {
+      border-color: rgba(56, 189, 248, 0.55);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.92), rgba(34, 197, 94, 0.86));
+      color: #04111f;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .preview {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 10px;
+      padding: clamp(12px, 2vw, 18px);
+      overflow: hidden;
+    }
+
+    .qr-stage {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      border-radius: calc(var(--radius) - 4px);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: clamp(10px, 2vw, 18px);
+      overflow: hidden;
+    }
+
+    #qrBox {
+      display: grid;
+      place-items: center;
+      width: min(100%, 72dvh, 560px);
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      background: var(--qr-bg);
+      padding: clamp(10px, 3vw, 22px);
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 18px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    #qrBox svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      shape-rendering: crispEdges;
+    }
+
+    .empty {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.45;
+      font-size: 14px;
+      padding: 20px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #status {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    #status.ok {
+      color: #bbf7d0;
+    }
+
+    #status.err {
+      color: #fecdd3;
+    }
+
+    .mini-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mini-actions button {
+      min-height: 36px;
+      padding: 0 11px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      color: rgba(167, 176, 192, 0.72);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    @media (orientation: portrait) {
+      .app {
+        min-height: calc(100dvh - 24px);
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      textarea {
+        min-height: 96px;
+        max-height: 22dvh;
+      }
+
+      .controls {
+        grid-template-rows: auto auto auto auto auto;
+      }
+
+      .preview {
+        min-height: 0;
+      }
+
+      #qrBox {
+        width: min(100%, 54dvh, 520px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body {
+        padding: 8px;
+      }
+
+      .app {
+        min-height: calc(100dvh - 16px);
+        gap: 8px;
+      }
+
+      header {
+        gap: 8px;
+      }
+
+      .subtitle,
+      footer {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(18px, 3vw, 26px);
+      }
+
+      main {
+        gap: 8px;
+      }
+
+      .controls,
+      .preview {
+        padding: 10px;
+        gap: 8px;
+      }
+
+      textarea {
+        min-height: 78px;
+        max-height: 28dvh;
+        font-size: 15px;
+      }
+
+      .row,
+      .actions {
+        gap: 8px;
+      }
+
+      select,
+      input[type="text"],
+      button {
+        min-height: 36px;
+        height: 36px;
+      }
+
+      #qrBox {
+        width: min(100%, 78dvh, 430px);
+        padding: 10px;
+        border-radius: 16px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .badge {
+        display: none;
+      }
+
+      .row,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .meta {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-actions {
+        justify-content: stretch;
+      }
+
+      .mini-actions button {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <h1>QR Code Generator</h1>
+        <div class="subtitle">离线文本 / 链接二维码生成器，适配手机竖屏与横屏。</div>
+      </div>
+      <div class="badge">Offline · Static</div>
+    </header>
+
+    <main>
+      <section class="card controls" aria-label="二维码内容设置">
+        <div class="field">
+          <label for="qrText">文本或链接</label>
+          <textarea
+            id="qrText"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="输入文本或链接，例如：https://example.com"
+          ></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="ecl">纠错等级</label>
+            <select id="ecl">
+              <option value="L">L - 容量最大</option>
+              <option value="M" selected>M - 推荐</option>
+              <option value="Q">Q - 较高</option>
+              <option value="H">H - 最高</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filename">文件名</label>
+            <input id="filename" type="text" value="qrcode" />
+          </div>
+        </div>
+
+        <label class="checkline">
+          <input id="smartUrl" type="checkbox" checked />
+          <span>链接智能补全 https://</span>
+        </label>
+
+        <div></div>
+
+        <div class="actions">
+          <button class="primary" id="generateBtn" type="button">生成二维码</button>
+          <button id="clearBtn" type="button">清空</button>
+        </div>
+      </section>
+
+      <section class="card preview" aria-label="二维码预览">
+        <div class="qr-stage">
+          <div id="qrBox">
+            <div class="empty">输入文本或链接后，将在这里生成二维码。</div>
+          </div>
+        </div>
+
+        <div class="meta">
+          <div id="status">准备就绪。所有生成均在本机浏览器离线完成。</div>
+          <div class="mini-actions">
+            <button id="downloadPngBtn" type="button" disabled>PNG</button>
+            <button id="downloadSvgBtn" type="button" disabled>SVG</button>
+            <button id="copySvgBtn" type="button" disabled>复制 SVG</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      单文件静态页面 · 无外部依赖 · 支持 UTF-8 文本 · QR Version 1-10
+    </footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    class QrCode {
+      static ECC_CODEWORDS_PER_BLOCK = [
+        null,
+        [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18],
+        [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26],
+        [-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24],
+        [-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28]
+      ];
+
+      static NUM_ERROR_CORRECTION_BLOCKS = [
+        null,
+        [-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4],
+        [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5],
+        [-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8],
+        [-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8]
+      ];
+
+      static RAW_CODEWORDS = [-1, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346];
+
+      static ECL = {
+        L: { index: 1, formatBits: 1, name: "L" },
+        M: { index: 2, formatBits: 0, name: "M" },
+        Q: { index: 3, formatBits: 3, name: "Q" },
+        H: { index: 4, formatBits: 2, name: "H" }
+      };
+
+      constructor(version, ecl, dataCodewords) {
+        this.version = version;
+        this.ecl = ecl;
+        this.size = version * 4 + 17;
+        this.modules = Array.from({ length: this.size }, () => Array(this.size).fill(null));
+        this.isFunction = Array.from({ length: this.size }, () => Array(this.size).fill(false));
+
+        this.drawFunctionPatterns();
+
+        const allCodewords = this.addEccAndInterleave(dataCodewords);
+        this.drawCodewords(allCodewords);
+
+        const baseModules = this.modules.map(row => row.slice());
+        let bestMask = 0;
+        let bestPenalty = Infinity;
+        let bestModules = null;
+
+        for (let mask = 0; mask < 8; mask++) {
+          this.modules = baseModules.map(row => row.slice());
+          this.applyMask(mask);
+          this.drawFormatBits(mask);
+          const penalty = this.getPenaltyScore();
+
+          if (penalty < bestPenalty) {
+            bestPenalty = penalty;
+            bestMask = mask;
+            bestModules = this.modules.map(row => row.slice());
+          }
+        }
+
+        this.mask = bestMask;
+        this.modules = bestModules;
+      }
+
+      static encodeText(text, eclName = "M") {
+        const ecl = QrCode.ECL[eclName] || QrCode.ECL.M;
+        const bytes = Array.from(new TextEncoder().encode(text));
+
+        for (let version = 1; version <= 10; version++) {
+          const dataCapacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+          const charCountBits = version <= 9 ? 8 : 16;
+
+          if (bytes.length >= (1 << charCountBits)) continue;
+
+          const neededBits = 4 + charCountBits + bytes.length * 8;
+          if (neededBits <= dataCapacityBits) {
+            const dataCodewords = QrCode.makeDataCodewords(bytes, version, ecl);
+            return new QrCode(version, ecl, dataCodewords);
+          }
+        }
+
+        throw new Error("内容过长。当前单文件版本支持 QR Version 1-10，请缩短文本，或降低纠错等级。");
+      }
+
+      static getNumDataCodewords(version, ecl) {
+        const raw = QrCode.RAW_CODEWORDS[version];
+        const eccPerBlock = QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.index][version];
+        const numBlocks = QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.index][version];
+        return raw - eccPerBlock * numBlocks;
+      }
+
+      static makeDataCodewords(bytes, version, ecl) {
+        const bitBuffer = [];
+        const appendBits = (value, length) => {
+          for (let i = length - 1; i >= 0; i--) {
+            bitBuffer.push((value >>> i) & 1);
+          }
+        };
+
+        const charCountBits = version <= 9 ? 8 : 16;
+        const capacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+
+        appendBits(0x4, 4);
+        appendBits(bytes.length, charCountBits);
+
+        for (const b of bytes) {
+          appendBits(b, 8);
+        }
+
+        const terminator = Math.min(4, capacityBits - bitBuffer.length);
+        appendBits(0, terminator);
+
+        while (bitBuffer.length % 8 !== 0) {
+          bitBuffer.push(0);
+        }
+
+        const dataCodewords = [];
+        for (let i = 0; i < bitBuffer.length; i += 8) {
+          let b = 0;
+          for (let j = 0; j < 8; j++) {
+            b = (b << 1) | bitBuffer[i + j];
+          }
+          dataCodewords.push(b);
+        }
+
+        const targetLen = QrCode.getNumDataCodewords(version, ecl);
+        for (let pad = 0; dataCodewords.length < targetLen; pad ^= 1) {
+          dataCodewords.push(pad === 0 ? 0xEC : 0x11);
+        }
+
+        return dataCodewords;
+      }
+
+      setFunctionModule(row, col, isDark) {
+        if (row < 0 || row >= this.size || col < 0 || col >= this.size) return;
+        this.modules[row][col] = Boolean(isDark);
+        this.isFunction[row][col] = true;
+      }
+
+      drawFunctionPatterns() {
+        this.drawFinderPattern(3, 3);
+        this.drawFinderPattern(3, this.size - 4);
+        this.drawFinderPattern(this.size - 4, 3);
+
+        const alignPositions = this.getAlignmentPatternPositions();
+        for (const row of alignPositions) {
+          for (const col of alignPositions) {
+            if (!this.isFunction[row][col]) {
+              this.drawAlignmentPattern(row, col);
+            }
+          }
+        }
+
+        for (let i = 0; i < this.size; i++) {
+          if (!this.isFunction[6][i]) this.setFunctionModule(6, i, i % 2 === 0);
+          if (!this.isFunction[i][6]) this.setFunctionModule(i, 6, i % 2 === 0);
+        }
+
+        this.reserveFormatBits();
+
+        if (this.version >= 7) {
+          this.drawVersionBits();
+        }
+
+        this.setFunctionModule(this.version * 4 + 9, 8, true);
+      }
+
+      drawFinderPattern(row, col) {
+        for (let dy = -4; dy <= 4; dy++) {
+          for (let dx = -4; dx <= 4; dx++) {
+            const r = row + dy;
+            const c = col + dx;
+            const dist = Math.max(Math.abs(dx), Math.abs(dy));
+            const dark = dist !== 2 && dist !== 4;
+            this.setFunctionModule(r, c, dark);
+          }
+        }
+      }
+
+      drawAlignmentPattern(row, col) {
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            const dist = Math.max(Math.abs(dx), Math.abs(dy));
+            this.setFunctionModule(row + dy, col + dx, dist === 0 || dist === 2);
+          }
+        }
+      }
+
+      getAlignmentPatternPositions() {
+        const table = [
+          [],
+          [],
+          [6, 18],
+          [6, 22],
+          [6, 26],
+          [6, 30],
+          [6, 34],
+          [6, 22, 38],
+          [6, 24, 42],
+          [6, 26, 46],
+          [6, 28, 50]
+        ];
+        return table[this.version];
+      }
+
+      reserveFormatBits() {
+        for (let i = 0; i <= 5; i++) {
+          this.setFunctionModule(8, i, false);
+          this.setFunctionModule(i, 8, false);
+        }
+
+        this.setFunctionModule(8, 7, false);
+        this.setFunctionModule(8, 8, false);
+        this.setFunctionModule(7, 8, false);
+
+        for (let i = 9; i < 15; i++) {
+          this.setFunctionModule(14 - i, 8, false);
+        }
+
+        for (let i = 0; i < 8; i++) {
+          this.setFunctionModule(this.size - 1 - i, 8, false);
+        }
+
+        for (let i = 8; i < 15; i++) {
+          this.setFunctionModule(8, this.size - 15 + i, false);
+        }
+      }
+
+      drawFormatBits(mask) {
+        const data = (this.ecl.formatBits << 3) | mask;
+        let rem = data << 10;
+
+        for (let i = 14; i >= 10; i--) {
+          if (((rem >>> i) & 1) !== 0) {
+            rem ^= 0x537 << (i - 10);
+          }
+        }
+
+        const bits = ((data << 10) | (rem & 0x3FF)) ^ 0x5412;
+        const getBit = i => ((bits >>> i) & 1) !== 0;
+
+        for (let i = 0; i <= 5; i++) {
+          this.setFunctionModule(8, i, getBit(i));
+          this.setFunctionModule(i, 8, getBit(i));
+        }
+
+        this.setFunctionModule(8, 7, getBit(6));
+        this.setFunctionModule(8, 8, getBit(7));
+        this.setFunctionModule(7, 8, getBit(8));
+
+        for (let i = 9; i < 15; i++) {
+          this.setFunctionModule(14 - i, 8, getBit(i));
+        }
+
+        for (let i = 0; i < 8; i++) {
+          this.setFunctionModule(this.size - 1 - i, 8, getBit(i));
+        }
+
+        for (let i = 8; i < 15; i++) {
+          this.setFunctionModule(8, this.size - 15 + i, getBit(i));
+        }
+
+        this.setFunctionModule(this.version * 4 + 9, 8, true);
+      }
+
+      drawVersionBits() {
+        let rem = this.version << 12;
+
+        for (let i = 17; i >= 12; i--) {
+          if (((rem >>> i) & 1) !== 0) {
+            rem ^= 0x1F25 << (i - 12);
+          }
+        }
+
+        const bits = (this.version << 12) | (rem & 0xFFF);
+
+        for (let i = 0; i < 18; i++) {
+          const bit = ((bits >>> i) & 1) !== 0;
+          const a = this.size - 11 + (i % 3);
+          const b = Math.floor(i / 3);
+
+          this.setFunctionModule(b, a, bit);
+          this.setFunctionModule(a, b, bit);
+        }
+      }
+
+      addEccAndInterleave(dataCodewords) {
+        const version = this.version;
+        const ecl = this.ecl;
+        const rawCodewords = QrCode.RAW_CODEWORDS[version];
+        const numBlocks = QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.index][version];
+        const blockEccLen = QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.index][version];
+        const numShortBlocks = numBlocks - (rawCodewords % numBlocks);
+        const shortBlockLen = Math.floor(rawCodewords / numBlocks);
+
+        const blocks = [];
+        let k = 0;
+
+        for (let i = 0; i < numBlocks; i++) {
+          const dataLen = shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1);
+          const data = dataCodewords.slice(k, k + dataLen);
+          k += dataLen;
+
+          const ecc = QrCode.reedSolomonComputeRemainder(
+            data,
+            QrCode.reedSolomonComputeDivisor(blockEccLen)
+          );
+
+          blocks.push({ data, ecc });
+        }
+
+        const result = [];
+        const maxDataLen = Math.max(...blocks.map(b => b.data.length));
+
+        for (let i = 0; i < maxDataLen; i++) {
+          for (const block of blocks) {
+            if (i < block.data.length) result.push(block.data[i]);
+          }
+        }
+
+        for (let i = 0; i < blockEccLen; i++) {
+          for (const block of blocks) {
+            result.push(block.ecc[i]);
+          }
+        }
+
+        return result;
+      }
+
+      drawCodewords(data) {
+        let bitIndex = 0;
+        let upward = true;
+
+        for (let right = this.size - 1; right >= 1; right -= 2) {
+          if (right === 6) right--;
+
+          for (let vert = 0; vert < this.size; vert++) {
+            const row = upward ? this.size - 1 - vert : vert;
+
+            for (let j = 0; j < 2; j++) {
+              const col = right - j;
+
+              if (!this.isFunction[row][col]) {
+                let dark = false;
+
+                if (bitIndex < data.length * 8) {
+                  dark = (((data[bitIndex >>> 3] >>> (7 - (bitIndex & 7))) & 1) !== 0);
+                  bitIndex++;
+                }
+
+                this.modules[row][col] = dark;
+              }
+            }
+          }
+
+          upward = !upward;
+        }
+      }
+
+      applyMask(mask) {
+        for (let row = 0; row < this.size; row++) {
+          for (let col = 0; col < this.size; col++) {
+            if (!this.isFunction[row][col] && QrCode.getMaskBit(mask, row, col)) {
+              this.modules[row][col] = !this.modules[row][col];
+            }
+          }
+        }
+      }
+
+      static getMaskBit(mask, row, col) {
+        switch (mask) {
+          case 0: return (row + col) % 2 === 0;
+          case 1: return row % 2 === 0;
+          case 2: return col % 3 === 0;
+          case 3: return (row + col) % 3 === 0;
+          case 4: return (Math.floor(row / 2) + Math.floor(col / 3)) % 2 === 0;
+          case 5: return ((row * col) % 2 + (row * col) % 3) === 0;
+          case 6: return (((row * col) % 2 + (row * col) % 3) % 2) === 0;
+          case 7: return (((row + col) % 2 + (row * col) % 3) % 2) === 0;
+          default: throw new Error("Invalid mask");
+        }
+      }
+
+      getPenaltyScore() {
+        let result = 0;
+        const size = this.size;
+
+        for (let row = 0; row < size; row++) {
+          let runColor = this.modules[row][0];
+          let runLen = 1;
+
+          for (let col = 1; col < size; col++) {
+            if (this.modules[row][col] === runColor) {
+              runLen++;
+            } else {
+              if (runLen >= 5) result += 3 + (runLen - 5);
+              runColor = this.modules[row][col];
+              runLen = 1;
+            }
+          }
+
+          if (runLen >= 5) result += 3 + (runLen - 5);
+        }
+
+        for (let col = 0; col < size; col++) {
+          let runColor = this.modules[0][col];
+          let runLen = 1;
+
+          for (let row = 1; row < size; row++) {
+            if (this.modules[row][col] === runColor) {
+              runLen++;
+            } else {
+              if (runLen >= 5) result += 3 + (runLen - 5);
+              runColor = this.modules[row][col];
+              runLen = 1;
+            }
+          }
+
+          if (runLen >= 5) result += 3 + (runLen - 5);
+        }
+
+        for (let row = 0; row < size - 1; row++) {
+          for (let col = 0; col < size - 1; col++) {
+            const c = this.modules[row][col];
+
+            if (
+              c === this.modules[row][col + 1] &&
+              c === this.modules[row + 1][col] &&
+              c === this.modules[row + 1][col + 1]
+            ) {
+              result += 3;
+            }
+          }
+        }
+
+        const pattern = [true, false, true, true, true, false, true];
+
+        for (let row = 0; row < size; row++) {
+          for (let col = 0; col <= size - 7; col++) {
+            if (pattern.every((v, i) => this.modules[row][col + i] === v)) {
+              const before = col >= 4 && [1, 2, 3, 4].every(i => !this.modules[row][col - i]);
+              const after = col + 11 <= size && [7, 8, 9, 10].every(i => !this.modules[row][col + i]);
+              if (before || after) result += 40;
+            }
+          }
+        }
+
+        for (let col = 0; col < size; col++) {
+          for (let row = 0; row <= size - 7; row++) {
+            if (pattern.every((v, i) => this.modules[row + i][col] === v)) {
+              const before = row >= 4 && [1, 2, 3, 4].every(i => !this.modules[row - i][col]);
+              const after = row + 11 <= size && [7, 8, 9, 10].every(i => !this.modules[row + i][col]);
+              if (before || after) result += 40;
+            }
+          }
+        }
+
+        let dark = 0;
+        for (const row of this.modules) {
+          for (const cell of row) {
+            if (cell) dark++;
+          }
+        }
+
+        const total = size * size;
+        result += Math.floor(Math.abs(dark * 20 - total * 10) / total) * 10;
+
+        return result;
+      }
+
+      static reedSolomonComputeDivisor(degree) {
+        const result = Array(degree).fill(0);
+        result[degree - 1] = 1;
+
+        let root = 1;
+
+        for (let i = 0; i < degree; i++) {
+          for (let j = 0; j < result.length; j++) {
+            result[j] = QrCode.galoisMultiply(result[j], root);
+
+            if (j + 1 < result.length) {
+              result[j] ^= result[j + 1];
+            }
+          }
+
+          root = QrCode.galoisMultiply(root, 0x02);
+        }
+
+        return result;
+      }
+
+      static reedSolomonComputeRemainder(data, divisor) {
+        const result = Array(divisor.length).fill(0);
+
+        for (const b of data) {
+          const factor = b ^ result.shift();
+          result.push(0);
+
+          divisor.forEach((coef, i) => {
+            result[i] ^= QrCode.galoisMultiply(coef, factor);
+          });
+        }
+
+        return result;
+      }
+
+      static galoisMultiply(x, y) {
+        let z = 0;
+
+        while (y !== 0) {
+          if ((y & 1) !== 0) z ^= x;
+
+          x <<= 1;
+
+          if ((x & 0x100) !== 0) {
+            x ^= 0x11D;
+          }
+
+          y >>>= 1;
+        }
+
+        return z & 0xFF;
+      }
+    }
+
+    const els = {
+      text: document.getElementById("qrText"),
+      ecl: document.getElementById("ecl"),
+      filename: document.getElementById("filename"),
+      smartUrl: document.getElementById("smartUrl"),
+      generateBtn: document.getElementById("generateBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      qrBox: document.getElementById("qrBox"),
+      status: document.getElementById("status"),
+      downloadPngBtn: document.getElementById("downloadPngBtn"),
+      downloadSvgBtn: document.getElementById("downloadSvgBtn"),
+      copySvgBtn: document.getElementById("copySvgBtn")
+    };
+
+    let currentQr = null;
+    let currentSvg = "";
+    let debounceTimer = 0;
+
+    function normalizeContent(raw) {
+      if (!els.smartUrl.checked) return raw;
+
+      const trimmed = raw.trim();
+
+      if (!trimmed) return raw;
+      if (/\s/.test(trimmed)) return raw;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return raw;
+
+      const looksLikeUrl =
+        /^www\./i.test(trimmed) ||
+        /^[\w.-]+\.[a-z]{2,}([/?#:].*)?$/i.test(trimmed);
+
+      return looksLikeUrl ? `https://${trimmed}` : raw;
+    }
+
+    function escapeXml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function qrToSvg(qr, options = {}) {
+      const quiet = options.quiet ?? 4;
+      const fg = options.fg ?? "#020617";
+      const bg = options.bg ?? "#ffffff";
+      const n = qr.size;
+      const total = n + quiet * 2;
+
+      let path = "";
+
+      for (let row = 0; row < n; row++) {
+        for (let col = 0; col < n; col++) {
+          if (qr.modules[row][col]) {
+            path += `M${col + quiet},${row + quiet}h1v1h-1z`;
+          }
+        }
+      }
+
+      return [
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" role="img" aria-label="QR Code" shape-rendering="crispEdges">`,
+        `<rect width="100%" height="100%" fill="${escapeXml(bg)}"/>`,
+        `<path d="${path}" fill="${escapeXml(fg)}"/>`,
+        `</svg>`
+      ].join("");
+    }
+
+    function setStatus(message, type = "") {
+      els.status.className = type;
+      els.status.textContent = message;
+    }
+
+    function setDownloadEnabled(enabled) {
+      els.downloadPngBtn.disabled = !enabled;
+      els.downloadSvgBtn.disabled = !enabled;
+      els.copySvgBtn.disabled = !enabled;
+    }
+
+    function generate() {
+      const raw = els.text.value;
+
+      if (!raw) {
+        currentQr = null;
+        currentSvg = "";
+        els.qrBox.innerHTML = `<div class="empty">输入文本或链接后，将在这里生成二维码。</div>`;
+        setStatus("准备就绪。所有生成均在本机浏览器离线完成。");
+        setDownloadEnabled(false);
+        return;
+      }
+
+      try {
+        const content = normalizeContent(raw);
+        const ecl = els.ecl.value;
+
+        currentQr = QrCode.encodeText(content, ecl);
+        currentSvg = qrToSvg(currentQr);
+
+        els.qrBox.innerHTML = currentSvg;
+
+        const bytes = new TextEncoder().encode(content).length;
+        const smartNote = content !== raw ? "，已自动补全 https://" : "";
+
+        setStatus(
+          `生成成功：Version ${currentQr.version}，纠错 ${currentQr.ecl.name}，${bytes} bytes${smartNote}。`,
+          "ok"
+        );
+
+        setDownloadEnabled(true);
+      } catch (err) {
+        currentQr = null;
+        currentSvg = "";
+        els.qrBox.innerHTML = `<div class="empty">生成失败<br>${escapeXml(err.message)}</div>`;
+        setStatus(err.message, "err");
+        setDownloadEnabled(false);
+      }
+    }
+
+    function scheduleGenerate() {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(generate, 120);
+    }
+
+    function safeFilename(ext) {
+      const base = els.filename.value.trim() || "qrcode";
+      return base.replace(/[\\/:*?"<>|]+/g, "_").slice(0, 80) + "." + ext;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadSvg() {
+      if (!currentSvg) return;
+
+      const blob = new Blob([currentSvg], { type: "image/svg+xml;charset=utf-8" });
+      downloadBlob(blob, safeFilename("svg"));
+    }
+
+    function downloadPng() {
+      if (!currentQr) return;
+
+      const quiet = 4;
+      const moduleCount = currentQr.size + quiet * 2;
+      const scale = Math.max(8, Math.floor(1024 / moduleCount));
+      const size = moduleCount * scale;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = "#020617";
+
+      for (let row = 0; row < currentQr.size; row++) {
+        for (let col = 0; col < currentQr.size; col++) {
+          if (currentQr.modules[row][col]) {
+            ctx.fillRect((col + quiet) * scale, (row + quiet) * scale, scale, scale);
+          }
+        }
+      }
+
+      canvas.toBlob(blob => {
+        if (blob) downloadBlob(blob, safeFilename("png"));
+      }, "image/png");
+    }
+
+    async function copySvg() {
+      if (!currentSvg) return;
+
+      try {
+        await navigator.clipboard.writeText(currentSvg);
+        setStatus("SVG 已复制到剪贴板。", "ok");
+      } catch {
+        setStatus("复制失败：当前浏览器或权限不允许访问剪贴板。", "err");
+      }
+    }
+
+    els.text.addEventListener("input", scheduleGenerate);
+    els.ecl.addEventListener("change", generate);
+    els.smartUrl.addEventListener("change", generate);
+    els.generateBtn.addEventListener("click", generate);
+
+    els.clearBtn.addEventListener("click", () => {
+      els.text.value = "";
+      generate();
+      els.text.focus();
+    });
+
+    els.downloadSvgBtn.addEventListener("click", downloadSvg);
+    els.downloadPngBtn.addEventListener("click", downloadPng);
+    els.copySvgBtn.addEventListener("click", copySvg);
+
+    generate();
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+          .then(function () {
+            console.log("Service Worker 注册成功");
+          })
+          .catch(function (error) {
+            console.warn("Service Worker 注册失败", error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

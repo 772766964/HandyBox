@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -385,9 +386,11 @@
       0% {
         transform: rotate(-2deg) translateY(0);
       }
+
       50% {
         transform: rotate(2deg) translateY(-2px);
       }
+
       100% {
         transform: rotate(-2deg) translateY(0);
       }
@@ -1185,7 +1188,7 @@
       setRollingUI(true);
 
       const config = cloneConfig(state);
-      const finalRolls = Array.from({ length: config.count }, () => randomIntInclusive(1, config.sides));
+      const finalRolls = Array.from({length: config.count}, () => randomIntInclusive(1, config.sides));
       const finalOutcome = evaluateRolls(finalRolls, config);
 
       if (config.animation) {
@@ -1212,7 +1215,7 @@
 
         function frame(now) {
           const elapsed = now - start;
-          const tempRolls = Array.from({ length: config.count }, () => randomIntInclusive(1, config.sides));
+          const tempRolls = Array.from({length: config.count}, () => randomIntInclusive(1, config.sides));
           const tempOutcome = {
             id: "rolling",
             time: new Date().toISOString(),
@@ -1249,7 +1252,7 @@
         const keepCount = clamp(config.keep, 1, rolls.length);
 
         const sortedIndexes = rolls
-          .map((value, index) => ({ value, index }))
+          .map((value, index) => ({value, index}))
           .sort((a, b) => {
             if (config.rule === "kh") {
               return b.value - a.value || a.index - b.index;
@@ -1295,7 +1298,7 @@
     }
 
     function renderOutcome(outcome, final) {
-      const { config, rolls, keptIndexes, discardedIndexes } = outcome;
+      const {config, rolls, keptIndexes, discardedIndexes} = outcome;
 
       els.diceGrid.className = "dice-grid";
       els.diceGrid.innerHTML = "";
@@ -1362,7 +1365,7 @@
     }
 
     function buildDetailText(outcome) {
-      const { config, rolls, keptIndexes, discardedIndexes, baseTotal, total } = outcome;
+      const {config, rolls, keptIndexes, discardedIndexes, baseTotal, total} = outcome;
 
       const keptValues = rolls.filter((_, index) => keptIndexes.has(index));
       const discardedValues = rolls.filter((_, index) => discardedIndexes.has(index));
@@ -1614,7 +1617,7 @@
         button.disabled = false;
       }, 850);
     }
-    
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("./sw.js")
@@ -1628,4 +1631,5 @@
     }
   </script>
 </body>
+
 </html>
