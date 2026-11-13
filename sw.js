@@ -1,11 +1,17 @@
-const CACHE_NAME = "guandan-score-v1";
+const CACHE_NAME = "handybox-v1";
 
 const APP_ASSETS = [
   "./",
   "./index.html",
+  "./guandan.html",
+  "./cardBox.html",
+  "./dice.html",
+  "./randomPick.html",
+  "./pomodoro.html",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", function (event) {
@@ -35,13 +41,25 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  if (event.request.method !== "GET") {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(function (cachedResponse) {
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      return fetch(event.request);
+      return fetch(event.request)
+        .then(function (networkResponse) {
+          return networkResponse;
+        })
+        .catch(function () {
+          if (event.request.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+        });
     })
   );
 });

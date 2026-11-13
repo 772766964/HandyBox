@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Card Box - 万能卡牌盒子</title>
+
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="HandyBox" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+
+  <style>
+    :root {
+      --bg: #10131a;
+      --panel: #181d29;
+      --panel-2: #202738;
+      --card: #252d40;
+      --text: #f5f7fb;
+      --muted: #aab2c5;
+      --primary: #6c8cff;
+      --primary-2: #8aa2ff;
+      --danger: #ff5f6d;
+      --success: #29c785;
+      --warning: #ffca55;
+      --border: rgba(255,255,255,0.1);
+      --shadow: 0 12px 30px rgba(0,0,0,0.28);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(108, 140, 255, 0.22), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 95, 109, 0.16), transparent 32%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.15s ease;
+      border: 1px solid var(--border);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #8f6cff);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #1ea873);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #f2448b);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, var(--warning), #ff9f43);
+      border-color: transparent;
+      color: #1e1e1e;
+    }
+
+    .btn-ghost {
+      background: transparent;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    select option {
+      background: #1c2230;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .app {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(16, 19, 26, 0.8);
+      border-bottom: 1px solid var(--border);
+      margin: 0 -18px 18px;
+      padding: 14px 18px;
+    }
+
+    .topbar-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .page {
+      animation: fadeIn 0.15s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero {
+      padding: 28px;
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(108, 140, 255, 0.26), rgba(255,255,255,0.04)),
+        var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      background: rgba(24, 29, 41, 0.88);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 750;
+    }
+
+    .panel-desc {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .item {
+      background: rgba(255,255,255,0.045);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .item-title {
+      font-weight: 750;
+      font-size: 17px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .item-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 0.8fr 1.6fr auto;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge-primary {
+      color: #dce4ff;
+      background: rgba(108,140,255,0.17);
+      border-color: rgba(108,140,255,0.35);
+    }
+
+    .badge-success {
+      color: #d6ffee;
+      background: rgba(41,199,133,0.14);
+      border-color: rgba(41,199,133,0.32);
+    }
+
+    .badge-danger {
+      color: #ffe1e5;
+      background: rgba(255,95,109,0.14);
+      border-color: rgba(255,95,109,0.32);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    .empty {
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .counter-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .counter strong {
+      min-width: 28px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .player-button {
+      min-height: 58px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-drawn {
+      opacity: 0.56;
+    }
+
+    .draw-card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .draw-card {
+      aspect-ratio: 0.72 / 1;
+      border-radius: 16px;
+      background:
+        linear-gradient(145deg, rgba(108,140,255,0.35), rgba(255,255,255,0.04)),
+        var(--card);
+      border: 1px solid rgba(255,255,255,0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.24);
+    }
+
+    .identity-secret {
+      border-radius: 20px;
+      padding: 22px;
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .identity-content {
+      display: none;
+      width: 100%;
+    }
+
+    .identity-secret.show .identity-content {
+      display: block;
+    }
+
+    .identity-secret.show .hold-hint {
+      display: none;
+    }
+
+    .identity-name {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 10px 0;
+    }
+
+    .host-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    .host-table th,
+    .host-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: top;
+    }
+
+    .host-table th {
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,202,85,0.12);
+      border: 1px solid rgba(255,202,85,0.28);
+      color: #ffe6a3;
+      line-height: 1.6;
+    }
+
+    .success-notice {
+      background: rgba(41,199,133,0.12);
+      border-color: rgba(41,199,133,0.28);
+      color: #d6ffee;
+    }
+
+    .danger-notice {
+      background: rgba(255,95,109,0.12);
+      border-color: rgba(255,95,109,0.28);
+      color: #ffe1e5;
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 820px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .grid-2,
+      .grid-3,
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .player-grid,
+      .draw-card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .player-grid,
+      .draw-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .app {
+        padding: 12px;
+      }
+
+      .topbar {
+        margin: 0 -12px 14px;
+        padding: 12px;
+      }
+
+      .hero {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand" onclick="nav('home')">
+          <div class="brand-title">Card Box</div>
+          <div class="brand-subtitle">万能卡牌盒子 · 静态版</div>
+        </div>
+        <div class="nav">
+          <button onclick="nav('home')">首页</button>
+          <button onclick="nav('libraries')">我的牌库</button>
+          <button onclick="nav('decks')">我的牌组</button>
+          <button class="btn-primary" onclick="startNewGame()">新建游戏</button>
+          <button onclick="nav('data')">导入 / 导出</button>
+        </div>
+      </div>
+    </div>
+
+    <main id="app"></main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "card_box_static_v1";
+
+    const app = {
+      view: "home",
+      libraryId: null,
+      cardId: null,
+      deckId: null,
+      tempFields: null,
+      deckLibraryId: null,
+      draftGame: null,
+      selectedPlayerId: null,
+      drawStage: "select",
+      identityVisible: false,
+      hostReveal: false,
+      hostMode: "seat"
+    };
+
+    let data = loadData();
+
+    function uid(prefix = "id") {
+      return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function h(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          console.warn("本地数据解析失败，已重置为默认数据。", e);
+        }
+      }
+      const initial = createDefaultData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      return initial;
+    }
+
+    function createDefaultFields() {
+      return [
+        {
+          id: uid("field"),
+          key: "name",
+          label: "名称",
+          type: "text",
+          required: true,
+          options: ""
+        },
+        {
+          id: uid("field"),
+          key: "type",
+          label: "类型",
+          type: "select",
+          required: true,
+          options: "身份牌,道具牌,事件牌,任务牌"
+        },
+        {
+          id: uid("field"),
+          key: "faction",
+          label: "阵营",
+          type: "select",
+          required: false,
+          options: "好人阵营,狼人阵营,第三方,中立"
+        },
+        {
+          id: uid("field"),
+          key: "description",
+          label: "描述",
+          type: "textarea",
+          required: false,
+          options: ""
+        },
+        {
+          id: uid("field"),
+          key: "color",
+          label: "颜色",
+          type: "text",
+          required: false,
+          options: ""
+        },
+        {
+          id: uid("field"),
+          key: "icon",
+          label: "图标",
+          type: "text",
+          required: false,
+          options: ""
+        },
+        {
+          id: uid("field"),
+          key: "public",
+          label: "是否公开",
+          type: "boolean",
+          required: false,
+          options: ""
+        },
+        {
+          id: uid("field"),
+          key: "notes",
+          label: "备注",
+          type: "textarea",
+          required: false,
+          options: ""
+        }
+      ];
+    }
+
+    function createDefaultData() {
+      const libraryId = uid("lib");
+      const fields = createDefaultFields();
+
+      function card(values) {
+        return {
+          id: uid("card"),
+          libraryId,
+          values
+        };
+      }
+
+      const cards = [
+        card({
+          name: "狼人",
+          type: "身份牌",
+          faction: "狼人阵营",
+          description: "每晚可以与其他狼人共同击杀一名玩家。",
+          color: "红色",
+          icon: "🐺",
+          public: "否",
+          notes: "经典狼人角色。"
+        }),
+        card({
+          name: "平民",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "没有特殊技能，需要通过发言和投票找出狼人。",
+          color: "蓝色",
+          icon: "👤",
+          public: "否",
+          notes: "基础身份。"
+        }),
+        card({
+          name: "预言家",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "每晚可以查验一名玩家的阵营。",
+          color: "紫色",
+          icon: "👁️",
+          public: "否",
+          notes: "经典神职角色。"
+        }),
+        card({
+          name: "女巫",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "拥有一瓶解药和一瓶毒药，通常每瓶药只能使用一次。",
+          color: "绿色",
+          icon: "🧪",
+          public: "否",
+          notes: "强力神职角色。"
+        }),
+        card({
+          name: "猎人",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "死亡时可以开枪带走一名玩家。",
+          color: "橙色",
+          icon: "🏹",
+          public: "否",
+          notes: "需要主持人根据规则确认是否可开枪。"
+        }),
+        card({
+          name: "守卫",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "每晚可以守护一名玩家，防止其被狼人击杀。",
+          color: "青色",
+          icon: "🛡️",
+          public: "否",
+          notes: "常见规则中不能连续两晚守护同一人。"
+        }),
+        card({
+          name: "白狼王",
+          type: "身份牌",
+          faction: "狼人阵营",
+          description: "白天自爆时可以带走一名玩家。",
+          color: "暗红色",
+          icon: "🐺",
+          public: "否",
+          notes: "适合人数较多的局。"
+        }),
+        card({
+          name: "狼美人",
+          type: "身份牌",
+          faction: "狼人阵营",
+          description: "夜晚可以魅惑一名玩家，死亡时被魅惑者可能一同出局。",
+          color: "玫红色",
+          icon: "🌹",
+          public: "否",
+          notes: "扩展角色。"
+        }),
+        card({
+          name: "骑士",
+          type: "身份牌",
+          faction: "好人阵营",
+          description: "白天可以发动决斗，验证一名玩家是否为狼人。",
+          color: "金色",
+          icon: "⚔️",
+          public: "否",
+          notes: "扩展神职。"
+        }),
+        card({
+          name: "丘比特",
+          type: "身份牌",
+          faction: "第三方",
+          description: "第一晚指定两名玩家成为情侣。",
+          color: "粉色",
+          icon: "💘",
+          public: "否",
+          notes: "会改变胜利条件。"
+        })
+      ];
+
+      const c = name => cards.find(x => x.values.name === name).id;
+
+      const baseDeckId = uid("deck");
+      const extensionDeckId = uid("deck");
+
+      return {
+        version: 1,
+        libraries: [
+          {
+            id: libraryId,
+            name: "狼人杀身份牌库",
+            description: "用于狼人杀、身份游戏和扩展角色配置。",
+            fields
+          }
+        ],
+        cards,
+        decks: [
+          {
+            id: baseDeckId,
+            type: "base",
+            name: "经典狼人杀",
+            description: "经典狼人杀基础身份牌组。",
+            libraryId,
+            baseDeckId: null,
+            cardIds: [
+              c("狼人"),
+              c("平民"),
+              c("预言家"),
+              c("女巫"),
+              c("猎人"),
+              c("守卫")
+            ],
+            presets: [
+              {
+                name: "6 人局",
+                playerCount: 6,
+                counts: {
+                  [c("狼人")]: 2,
+                  [c("平民")]: 2,
+                  [c("预言家")]: 1,
+                  [c("女巫")]: 1
+                }
+              },
+              {
+                name: "8 人局",
+                playerCount: 8,
+                counts: {
+                  [c("狼人")]: 2,
+                  [c("平民")]: 4,
+                  [c("预言家")]: 1,
+                  [c("女巫")]: 1
+                }
+              },
+              {
+                name: "10 人局",
+                playerCount: 10,
+                counts: {
+                  [c("狼人")]: 3,
+                  [c("平民")]: 4,
+                  [c("预言家")]: 1,
+                  [c("女巫")]: 1,
+                  [c("猎人")]: 1
+                }
+              },
+              {
+                name: "12 人局",
+                playerCount: 12,
+                counts: {
+                  [c("狼人")]: 4,
+                  [c("平民")]: 4,
+                  [c("预言家")]: 1,
+                  [c("女巫")]: 1,
+                  [c("猎人")]: 1,
+                  [c("守卫")]: 1
+                }
+              }
+            ]
+          },
+          {
+            id: extensionDeckId,
+            type: "extension",
+            name: "狼人杀扩展牌组 1",
+            description: "包含白狼王、狼美人、骑士、丘比特等扩展角色。",
+            libraryId,
+            baseDeckId,
+            cardIds: [
+              c("白狼王"),
+              c("狼美人"),
+              c("骑士"),
+              c("丘比特")
+            ],
+            presets: []
+          }
+        ],
+        currentGame: null
+      };
+    }
+
+    function nav(view, params = {}) {
+      app.view = view;
+      Object.assign(app, params);
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function getLibrary(id) {
+      return data.libraries.find(x => x.id === id);
+    }
+
+    function getCard(id) {
+      return data.cards.find(x => x.id === id);
+    }
+
+    function getDeck(id) {
+      return data.decks.find(x => x.id === id);
+    }
+
+    function getCardsByLibrary(libraryId) {
+      return data.cards.filter(c => c.libraryId === libraryId);
+    }
+
+    function cardName(card) {
+      return card?.values?.name || "未命名卡牌";
+    }
+
+    function cardFaction(card) {
+      return card?.values?.faction || "";
+    }
+
+    function cardDesc(card) {
+      return card?.values?.description || "";
+    }
+
+    function cardIcon(card) {
+      return card?.values?.icon || "🃏";
+    }
+
+    function cardColor(card) {
+      return card?.values?.color || "";
+    }
+
+    function render() {
+      const root = $("app");
+
+      if (app.view === "home") root.innerHTML = renderHome();
+      if (app.view === "libraries") root.innerHTML = renderLibraries();
+      if (app.view === "libraryNew") root.innerHTML = renderLibraryNew();
+      if (app.view === "libraryDetail") root.innerHTML = renderLibraryDetail();
+      if (app.view === "cardForm") root.innerHTML = renderCardForm();
+      if (app.view === "decks") root.innerHTML = renderDecks();
+      if (app.view === "deckForm") root.innerHTML = renderDeckForm();
+      if (app.view === "newGame1") root.innerHTML = renderNewGame1();
+      if (app.view === "newGame2") root.innerHTML = renderNewGame2();
+      if (app.view === "draw") root.innerHTML = renderDraw();
+      if (app.view === "host") root.innerHTML = renderHost();
+      if (app.view === "data") root.innerHTML = renderDataPage();
+    }
+
+    function renderHome() {
+      const libs = data.libraries.length;
+      const cards = data.cards.length;
+      const baseDecks = data.decks.filter(d => d.type === "base").length;
+      const extDecks = data.decks.filter(d => d.type === "extension").length;
+      const game = data.currentGame;
+
+      return `
+        <section class="page">
+          <div class="hero">
+            <h1>Card Box</h1>
+            <p>
+              万能卡牌盒子。你可以像建立数据库一样先定义牌库结构，再创建卡牌、组合基础牌组和扩展牌组，
+              最后用一台手机完成线下抽卡、身份查看和主持人管理。
+            </p>
+            <div class="actions">
+              <button class="btn-primary" onclick="startNewGame()">新建游戏</button>
+              ${game ? `<button class="btn-success" onclick="nav('draw')">继续当前游戏</button>` : ""}
+              <button onclick="nav('libraries')">管理牌库</button>
+              <button onclick="nav('decks')">管理牌组</button>
+            </div>
+          </div>
+
+          <div class="grid grid-3">
+            <div class="panel">
+              <div class="panel-title">牌库</div>
+              <div class="panel-desc">定义卡牌字段结构，例如名称、类型、阵营、描述、颜色、图标等。</div>
+              <div class="divider"></div>
+              <div class="item-title">${libs} 个牌库</div>
+              <button onclick="nav('libraries')">进入牌库</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">卡牌</div>
+              <div class="panel-desc">在指定牌库结构下创建具体卡牌。</div>
+              <div class="divider"></div>
+              <div class="item-title">${cards} 张卡牌</div>
+              <button onclick="nav('libraries')">查看卡牌</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">牌组</div>
+              <div class="panel-desc">基础牌组和扩展牌组可以组合使用。</div>
+              <div class="divider"></div>
+              <div class="item-title">${baseDecks} 个基础牌组 · ${extDecks} 个扩展牌组</div>
+              <button onclick="nav('decks')">进入牌组</button>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:14px;">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">推荐流程</h2>
+                <div class="panel-desc">当前版本推荐按下面流程使用。</div>
+              </div>
+            </div>
+            <div class="grid grid-3">
+              <div class="item">
+                <div class="item-title">1. 建立牌库结构</div>
+                <div class="item-meta">先定义卡牌有哪些字段，类似建立数据库表结构。</div>
+              </div>
+              <div class="item">
+                <div class="item-title">2. 创建卡牌和牌组</div>
+                <div class="item-meta">在牌库下添加卡牌，再组合成基础牌组和扩展牌组。</div>
+              </div>
+              <div class="item">
+                <div class="item-title">3. 新建游戏抽卡</div>
+                <div class="item-meta">设置人数、代号、卡牌数量，玩家选择代号后抽卡。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderLibraries() {
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">我的牌库</h2>
+                <div class="panel-desc">牌库负责定义卡牌结构。建立牌库之后，才能在该结构下创建卡牌。</div>
+              </div>
+              <button class="btn-primary" onclick="startNewLibrary()">新建牌库</button>
+            </div>
+
+            ${data.libraries.length === 0 ? `
+              <div class="empty">暂无牌库，请先新建一个牌库。</div>
+            ` : `
+              <div class="card-list">
+                ${data.libraries.map(lib => {
+                  const count = getCardsByLibrary(lib.id).length;
+                  return `
+                    <div class="item">
+                      <div class="item-title">${h(lib.name)} <span class="badge">${count} 张卡牌</span></div>
+                      <div class="item-meta">${h(lib.description || "无说明")}</div>
+                      <div class="item-meta">字段：${lib.fields.map(f => h(f.label)).join("、")}</div>
+                      <div class="actions">
+                        <button class="btn-primary" onclick="nav('libraryDetail', { libraryId: '${lib.id}' })">进入</button>
+                        <button onclick="duplicateLibrary('${lib.id}')">复制</button>
+                        <button class="btn-danger" onclick="deleteLibrary('${lib.id}')">删除</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function startNewLibrary() {
+      app.tempFields = createDefaultFields();
+      nav("libraryNew");
+    }
+
+    function renderLibraryNew() {
+      if (!app.tempFields) app.tempFields = createDefaultFields();
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">新建牌库</h2>
+                <div class="panel-desc">先定义卡牌字段结构。后续该牌库下的卡牌都会按照这个结构填写。</div>
+              </div>
+              <button onclick="nav('libraries')">返回</button>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label>牌库名称</label>
+                <input id="libraryName" placeholder="例如：狼人杀身份牌库" value="新牌库" />
+              </div>
+              <div>
+                <label>牌库说明</label>
+                <textarea id="libraryDescription" placeholder="说明这个牌库适合什么玩法"></textarea>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="panel-title" style="font-size:17px;">字段结构</div>
+            <div class="panel-desc">字段类型支持：文本、长文本、选项、数字、是否。</div>
+
+            <div id="fieldEditor" style="margin-top:12px;">
+              ${app.tempFields.map((f, index) => `
+                <div class="field-row">
+                  <div>
+                    <label>字段名</label>
+                    <input id="field_label_${index}" value="${h(f.label)}" />
+                  </div>
+                  <div>
+                    <label>字段类型</label>
+                    <select id="field_type_${index}">
+                      ${["text","textarea","select","number","boolean"].map(t => `
+                        <option value="${t}" ${f.type === t ? "selected" : ""}>${fieldTypeName(t)}</option>
+                      `).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <label>必填</label>
+                    <select id="field_required_${index}">
+                      <option value="true" ${f.required ? "selected" : ""}>是</option>
+                      <option value="false" ${!f.required ? "selected" : ""}>否</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>选项，逗号分隔</label>
+                    <input id="field_options_${index}" value="${h(f.options || "")}" placeholder="仅选项字段需要" />
+                  </div>
+                  <button class="btn-danger" onclick="removeTempField(${index})">删除</button>
+                </div>
+              `).join("")}
+            </div>
+
+            <div class="actions">
+              <button onclick="addTempField()">添加字段</button>
+              <button class="btn-primary" onclick="saveNewLibrary()">保存牌库</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function fieldTypeName(type) {
+      return {
+        text: "文本",
+        textarea: "长文本",
+        select: "选项",
+        number: "数字",
+        boolean: "是否"
+      }[type] || type;
+    }
+
+    function collectTempFields() {
+      app.tempFields = app.tempFields.map((f, index) => ({
+        ...f,
+        label: $(`field_label_${index}`)?.value.trim() || f.label,
+        type: $(`field_type_${index}`)?.value || f.type,
+        required: $(`field_required_${index}`)?.value === "true",
+        options: $(`field_options_${index}`)?.value.trim() || ""
+      }));
+    }
+
+    function addTempField() {
+      collectTempFields();
+      app.tempFields.push({
+        id: uid("field"),
+        key: "custom_" + uid("").replaceAll("_", ""),
+        label: "自定义字段",
+        type: "text",
+        required: false,
+        options: ""
+      });
+      render();
+    }
+
+    function removeTempField(index) {
+      collectTempFields();
+      app.tempFields.splice(index, 1);
+      render();
+    }
+
+    function saveNewLibrary() {
+      collectTempFields();
+
+      const name = $("libraryName").value.trim();
+      const description = $("libraryDescription").value.trim();
+
+      if (!name) {
+        alert("请填写牌库名称。");
+        return;
+      }
+
+      if (app.tempFields.length === 0) {
+        alert("请至少保留一个字段。");
+        return;
+      }
+
+      data.libraries.push({
+        id: uid("lib"),
+        name,
+        description,
+        fields: app.tempFields
+      });
+
+      app.tempFields = null;
+      saveData();
+      nav("libraries");
+    }
+
+    function duplicateLibrary(libraryId) {
+      const lib = getLibrary(libraryId);
+      if (!lib) return;
+
+      const newLibId = uid("lib");
+      const copiedFields = lib.fields.map(f => ({ ...f, id: uid("field") }));
+
+      data.libraries.push({
+        ...lib,
+        id: newLibId,
+        name: lib.name + " 副本",
+        fields: copiedFields
+      });
+
+      saveData();
+      render();
+    }
+
+    function deleteLibrary(libraryId) {
+      const usedCards = data.cards.filter(c => c.libraryId === libraryId).length;
+      const usedDecks = data.decks.filter(d => d.libraryId === libraryId).length;
+
+      if (!confirm(`确定删除该牌库吗？\n相关卡牌 ${usedCards} 张，相关牌组 ${usedDecks} 个也会被删除。`)) return;
+
+      data.libraries = data.libraries.filter(x => x.id !== libraryId);
+      data.cards = data.cards.filter(x => x.libraryId !== libraryId);
+      data.decks = data.decks.filter(x => x.libraryId !== libraryId);
+      saveData();
+      nav("libraries");
+    }
+
+    function renderLibraryDetail() {
+      const lib = getLibrary(app.libraryId);
+      if (!lib) return `<div class="empty">牌库不存在。</div>`;
+
+      const cards = getCardsByLibrary(lib.id);
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">${h(lib.name)}</h2>
+                <div class="panel-desc">${h(lib.description || "无说明")}</div>
+              </div>
+              <div class="actions" style="margin-top:0;">
+                <button onclick="nav('libraries')">返回</button>
+                <button class="btn-primary" onclick="nav('cardForm', { libraryId: '${lib.id}', cardId: null })">添加卡牌</button>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="item-title">字段结构</div>
+              <div class="item-meta">
+                ${lib.fields.map(f => `
+                  <span class="badge ${f.required ? "badge-primary" : ""}">
+                    ${h(f.label)} · ${fieldTypeName(f.type)}${f.required ? " · 必填" : ""}
+                  </span>
+                `).join(" ")}
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="panel-title" style="font-size:17px;">卡牌列表</div>
+
+            ${cards.length === 0 ? `
+              <div class="empty" style="margin-top:12px;">这个牌库下还没有卡牌。</div>
+            ` : `
+              <div class="card-list" style="margin-top:12px;">
+                ${cards.map(card => `
+                  <div class="item">
+                    <div class="item-title">
+                      <span>${h(cardIcon(card))}</span>
+                      ${h(cardName(card))}
+                      ${cardFaction(card) ? `<span class="badge">${h(cardFaction(card))}</span>` : ""}
+                    </div>
+                    <div class="item-meta">${h(cardDesc(card) || "无描述")}</div>
+                    <div class="item-meta">颜色：${h(cardColor(card) || "未设置")}</div>
+                    <div class="actions">
+                      <button onclick="nav('cardForm', { libraryId: '${lib.id}', cardId: '${card.id}' })">编辑</button>
+                      <button onclick="duplicateCard('${card.id}')">复制</button>
+                      <button class="btn-danger" onclick="deleteCard('${card.id}')">删除</button>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCardForm() {
+      const lib = getLibrary(app.libraryId);
+      if (!lib) return `<div class="empty">牌库不存在。</div>`;
+
+      const card = app.cardId ? getCard(app.cardId) : null;
+      const values = card?.values || {};
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">${card ? "编辑卡牌" : "新建卡牌"}</h2>
+                <div class="panel-desc">所属牌库：${h(lib.name)}</div>
+              </div>
+              <button onclick="nav('libraryDetail', { libraryId: '${lib.id}' })">返回</button>
+            </div>
+
+            <div class="form-grid">
+              ${lib.fields.map(field => `
+                <div>
+                  <label>${h(field.label)}${field.required ? " *" : ""}</label>
+                  ${renderFieldInput(field, values[field.key])}
+                </div>
+              `).join("")}
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary" onclick="saveCard()">保存卡牌</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderFieldInput(field, value) {
+      const id = `card_field_${field.key}`;
+      const v = value ?? "";
+
+      if (field.type === "textarea") {
+        return `<textarea id="${id}" placeholder="${h(field.label)}">${h(v)}</textarea>`;
+      }
+
+      if (field.type === "select") {
+        const options = String(field.options || "")
+          .split(",")
+          .map(x => x.trim())
+          .filter(Boolean);
+
+        return `
+          <select id="${id}">
+            <option value="">请选择</option>
+            ${options.map(opt => `
+              <option value="${h(opt)}" ${v === opt ? "selected" : ""}>${h(opt)}</option>
+            `).join("")}
+          </select>
+        `;
+      }
+
+      if (field.type === "boolean") {
+        return `
+          <select id="${id}">
+            <option value="否" ${v === "否" ? "selected" : ""}>否</option>
+            <option value="是" ${v === "是" ? "selected" : ""}>是</option>
+          </select>
+        `;
+      }
+
+      if (field.type === "number") {
+        return `<input id="${id}" type="number" value="${h(v)}" />`;
+      }
+
+      return `<input id="${id}" value="${h(v)}" placeholder="${h(field.label)}" />`;
+    }
+
+    function saveCard() {
+      const lib = getLibrary(app.libraryId);
+      if (!lib) return;
+
+      const values = {};
+
+      for (const field of lib.fields) {
+        const el = $(`card_field_${field.key}`);
+        const value = el ? el.value.trim() : "";
+
+        if (field.required && !value) {
+          alert(`请填写必填字段：${field.label}`);
+          return;
+        }
+
+        values[field.key] = value;
+      }
+
+      if (app.cardId) {
+        const card = getCard(app.cardId);
+        card.values = values;
+      } else {
+        data.cards.push({
+          id: uid("card"),
+          libraryId: lib.id,
+          values
+        });
+      }
+
+      saveData();
+      nav("libraryDetail", { libraryId: lib.id });
+    }
+
+    function duplicateCard(cardId) {
+      const card = getCard(cardId);
+      if (!card) return;
+
+      const newCard = JSON.parse(JSON.stringify(card));
+      newCard.id = uid("card");
+      newCard.values.name = (newCard.values.name || "未命名") + " 副本";
+
+      data.cards.push(newCard);
+      saveData();
+      render();
+    }
+
+    function deleteCard(cardId) {
+      const usedDecks = data.decks.filter(d => d.cardIds.includes(cardId)).length;
+
+      if (!confirm(`确定删除这张卡牌吗？\n有 ${usedDecks} 个牌组引用了它。`)) return;
+
+      data.cards = data.cards.filter(c => c.id !== cardId);
+      data.decks.forEach(d => {
+        d.cardIds = d.cardIds.filter(id => id !== cardId);
+        d.presets?.forEach(p => delete p.counts[cardId]);
+      });
+
+      saveData();
+      render();
+    }
+
+    function renderDecks() {
+      const baseDecks = data.decks.filter(d => d.type === "base");
+      const extDecks = data.decks.filter(d => d.type === "extension");
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">我的牌组</h2>
+                <div class="panel-desc">基础牌组是主玩法，扩展牌组可以在开局时叠加使用。</div>
+              </div>
+              <div class="actions" style="margin-top:0;">
+                <button class="btn-primary" onclick="startDeckForm('base')">新建基础牌组</button>
+                <button onclick="startDeckForm('extension')">新建扩展牌组</button>
+              </div>
+            </div>
+
+            <div class="grid grid-2">
+              <div>
+                <div class="panel-title" style="font-size:17px;">基础牌组</div>
+                <div class="card-list" style="margin-top:12px;">
+                  ${baseDecks.length ? baseDecks.map(renderDeckItem).join("") : `<div class="empty">暂无基础牌组。</div>`}
+                </div>
+              </div>
+
+              <div>
+                <div class="panel-title" style="font-size:17px;">扩展牌组</div>
+                <div class="card-list" style="margin-top:12px;">
+                  ${extDecks.length ? extDecks.map(renderDeckItem).join("") : `<div class="empty">暂无扩展牌组。</div>`}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderDeckItem(deck) {
+      const lib = getLibrary(deck.libraryId);
+      const cardCount = deck.cardIds.length;
+      const base = deck.baseDeckId ? getDeck(deck.baseDeckId) : null;
+
+      return `
+        <div class="item">
+          <div class="item-title">
+            ${h(deck.name)}
+            <span class="badge ${deck.type === "base" ? "badge-primary" : "badge-success"}">
+              ${deck.type === "base" ? "基础牌组" : "扩展牌组"}
+            </span>
+          </div>
+          <div class="item-meta">${h(deck.description || "无说明")}</div>
+          <div class="item-meta">所属牌库：${h(lib?.name || "未知牌库")}</div>
+          ${base ? `<div class="item-meta">适用基础牌组：${h(base.name)}</div>` : ""}
+          <div class="item-meta">包含卡牌：${cardCount} 张</div>
+          <div class="actions">
+            <button onclick="startDeckForm('${deck.type}', '${deck.id}')">编辑</button>
+            <button onclick="duplicateDeck('${deck.id}')">复制</button>
+            <button class="btn-danger" onclick="deleteDeck('${deck.id}')">删除</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function startDeckForm(type, deckId = null) {
+      app.deckId = deckId;
+      app.deckLibraryId = deckId ? getDeck(deckId).libraryId : (data.libraries[0]?.id || null);
+      app.deckType = type;
+      nav("deckForm");
+    }
+
+    function renderDeckForm() {
+      const isEdit = !!app.deckId;
+      const deck = isEdit ? getDeck(app.deckId) : null;
+      const type = deck?.type || app.deckType || "base";
+      const selectedLibraryId = deck?.libraryId || app.deckLibraryId || data.libraries[0]?.id;
+      const lib = getLibrary(selectedLibraryId);
+      const cards = lib ? getCardsByLibrary(lib.id) : [];
+      const selectedCardIds = deck?.cardIds || [];
+      const baseDecks = data.decks.filter(d => d.type === "base" && d.libraryId === selectedLibraryId && d.id !== deck?.id);
+
+      if (!data.libraries.length) {
+        return `
+          <div class="panel">
+            <div class="empty">请先创建牌库，再创建牌组。</div>
+            <div class="actions"><button onclick="startNewLibrary()">新建牌库</button></div>
+          </div>
+        `;
+      }
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">${isEdit ? "编辑牌组" : "新建牌组"}</h2>
+                <div class="panel-desc">${type === "base" ? "基础牌组是主玩法。" : "扩展牌组可以叠加到基础牌组中。"}</div>
+              </div>
+              <button onclick="nav('decks')">返回</button>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <div>
+                  <label>牌组名称</label>
+                  <input id="deckName" value="${h(deck?.name || "")}" placeholder="例如：经典狼人杀" />
+                </div>
+                <div>
+                  <label>牌组类型</label>
+                  <input value="${type === "base" ? "基础牌组" : "扩展牌组"}" disabled />
+                </div>
+              </div>
+
+              <div>
+                <label>牌组说明</label>
+                <textarea id="deckDescription">${h(deck?.description || "")}</textarea>
+              </div>
+
+              <div>
+                <label>所属牌库</label>
+                <select id="deckLibrary" ${isEdit ? "disabled" : ""} onchange="app.deckLibraryId=this.value; render()">
+                  ${data.libraries.map(l => `
+                    <option value="${l.id}" ${l.id === selectedLibraryId ? "selected" : ""}>${h(l.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+
+              ${type === "extension" ? `
+                <div>
+                  <label>适用基础牌组</label>
+                  <select id="deckBaseDeck">
+                    <option value="">不指定</option>
+                    ${baseDecks.map(b => `
+                      <option value="${b.id}" ${deck?.baseDeckId === b.id ? "selected" : ""}>${h(b.name)}</option>
+                    `).join("")}
+                  </select>
+                </div>
+              ` : ""}
+
+              <div>
+                <label>选择包含的卡牌</label>
+                ${cards.length === 0 ? `
+                  <div class="empty">该牌库下暂无卡牌。</div>
+                ` : `
+                  <div class="grid grid-2">
+                    ${cards.map(card => `
+                      <label class="item" style="cursor:pointer;margin:0;color:var(--text);">
+                        <input
+                          type="checkbox"
+                          class="deck-card-checkbox"
+                          value="${card.id}"
+                          ${selectedCardIds.includes(card.id) ? "checked" : ""}
+                          style="width:auto;margin-right:8px;"
+                        />
+                        ${h(cardIcon(card))} ${h(cardName(card))}
+                        ${cardFaction(card) ? `<span class="badge">${h(cardFaction(card))}</span>` : ""}
+                      </label>
+                    `).join("")}
+                  </div>
+                `}
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary" onclick="saveDeck('${type}')">保存牌组</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function saveDeck(type) {
+      const name = $("deckName").value.trim();
+      const description = $("deckDescription").value.trim();
+      const libraryId = $("deckLibrary").value;
+      const cardIds = Array.from(document.querySelectorAll(".deck-card-checkbox:checked")).map(x => x.value);
+      const baseDeckId = type === "extension" ? ($("deckBaseDeck")?.value || null) : null;
+
+      if (!name) {
+        alert("请填写牌组名称。");
+        return;
+      }
+
+      if (cardIds.length === 0) {
+        alert("请至少选择一张卡牌。");
+        return;
+      }
+
+      if (app.deckId) {
+        const deck = getDeck(app.deckId);
+        deck.name = name;
+        deck.description = description;
+        deck.cardIds = cardIds;
+        deck.baseDeckId = baseDeckId;
+      } else {
+        data.decks.push({
+          id: uid("deck"),
+          type,
+          name,
+          description,
+          libraryId,
+          baseDeckId,
+          cardIds,
+          presets: []
+        });
+      }
+
+      saveData();
+      nav("decks");
+    }
+
+    function duplicateDeck(deckId) {
+      const deck = getDeck(deckId);
+      if (!deck) return;
+
+      const copy = JSON.parse(JSON.stringify(deck));
+      copy.id = uid("deck");
+      copy.name = copy.name + " 副本";
+
+      data.decks.push(copy);
+      saveData();
+      render();
+    }
+
+    function deleteDeck(deckId) {
+      if (!confirm("确定删除这个牌组吗？")) return;
+      data.decks = data.decks.filter(d => d.id !== deckId);
+      data.decks.forEach(d => {
+        if (d.baseDeckId === deckId) d.baseDeckId = null;
+      });
+      saveData();
+      render();
+    }
+
+    function startNewGame() {
+      const baseDecks = data.decks.filter(d => d.type === "base");
+
+      if (!baseDecks.length) {
+        alert("请先创建至少一个基础牌组。");
+        nav("decks");
+        return;
+      }
+
+      app.draftGame = {
+        baseDeckId: baseDecks[0].id,
+        extensionDeckIds: [],
+        playerCount: 10,
+        players: [],
+        counts: {}
+      };
+
+      app.hostReveal = false;
+      app.selectedPlayerId = null;
+      app.drawStage = "select";
+      nav("newGame1");
+    }
+
+    function renderNewGame1() {
+      if (!app.draftGame) startNewGame();
+
+      const baseDecks = data.decks.filter(d => d.type === "base");
+      const selectedBase = getDeck(app.draftGame.baseDeckId) || baseDecks[0];
+      const extensions = data.decks.filter(d =>
+        d.type === "extension" &&
+        d.libraryId === selectedBase.libraryId &&
+        (!d.baseDeckId || d.baseDeckId === selectedBase.id)
+      );
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">新建游戏</h2>
+                <div class="panel-desc">选择基础牌组、扩展牌组和玩家人数。</div>
+              </div>
+              <button onclick="nav('home')">取消</button>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label>基础牌组</label>
+                <select id="gameBaseDeck" onchange="changeGameBaseDeck(this.value)">
+                  ${baseDecks.map(deck => `
+                    <option value="${deck.id}" ${deck.id === selectedBase.id ? "selected" : ""}>${h(deck.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+
+              <div>
+                <label>扩展牌组</label>
+                ${extensions.length === 0 ? `
+                  <div class="empty">当前基础牌组暂无可用扩展牌组。</div>
+                ` : `
+                  <div class="grid grid-2">
+                    ${extensions.map(ext => `
+                      <label class="item" style="cursor:pointer;margin:0;color:var(--text);">
+                        <input
+                          type="checkbox"
+                          class="game-extension-checkbox"
+                          value="${ext.id}"
+                          ${app.draftGame.extensionDeckIds.includes(ext.id) ? "checked" : ""}
+                          style="width:auto;margin-right:8px;"
+                        />
+                        ${h(ext.name)}
+                        <div class="item-meta">${h(ext.description || "")}</div>
+                      </label>
+                    `).join("")}
+                  </div>
+                `}
+              </div>
+
+              <div>
+                <label>玩家人数</label>
+                <input id="gamePlayerCount" type="number" min="1" max="99" value="${app.draftGame.playerCount}" />
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary" onclick="setupGameConfig()">下一步：设置代号和卡牌数量</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function changeGameBaseDeck(deckId) {
+      app.draftGame.baseDeckId = deckId;
+      app.draftGame.extensionDeckIds = [];
+      render();
+    }
+
+    function setupGameConfig() {
+      const baseDeckId = $("gameBaseDeck").value;
+      const playerCount = parseInt($("gamePlayerCount").value, 10);
+      const extensionDeckIds = Array.from(document.querySelectorAll(".game-extension-checkbox:checked")).map(x => x.value);
+
+      if (!playerCount || playerCount <= 0) {
+        alert("请输入正确的玩家人数。");
+        return;
+      }
+
+      app.draftGame.baseDeckId = baseDeckId;
+      app.draftGame.extensionDeckIds = extensionDeckIds;
+      app.draftGame.playerCount = playerCount;
+
+      app.draftGame.players = Array.from({ length: playerCount }).map((_, index) => {
+        const old = app.draftGame.players[index];
+        return {
+          id: old?.id || uid("player"),
+          seat: index + 1,
+          alias: old?.alias || ""
+        };
+      });
+
+      const cards = getAvailableGameCards();
+      const baseDeck = getDeck(baseDeckId);
+      const preset = baseDeck.presets?.find(p => p.playerCount === playerCount);
+      const counts = {};
+
+      cards.forEach(card => {
+        counts[card.id] = preset?.counts?.[card.id] || 0;
+      });
+
+      app.draftGame.counts = counts;
+
+      nav("newGame2");
+    }
+
+    function getAvailableGameCards() {
+      if (!app.draftGame) return [];
+
+      const decks = [
+        getDeck(app.draftGame.baseDeckId),
+        ...app.draftGame.extensionDeckIds.map(getDeck)
+      ].filter(Boolean);
+
+      const idSet = new Set();
+
+      decks.forEach(deck => {
+        deck.cardIds.forEach(id => idSet.add(id));
+      });
+
+      return Array.from(idSet).map(getCard).filter(Boolean);
+    }
+
+    function renderNewGame2() {
+      if (!app.draftGame) return `<div class="empty">游戏配置不存在。</div>`;
+
+      const cards = getAvailableGameCards();
+      const total = Object.values(app.draftGame.counts).reduce((a, b) => a + Number(b || 0), 0);
+      const target = app.draftGame.playerCount;
+      const valid = total === target;
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">设置代号和卡牌数量</h2>
+                <div class="panel-desc">默认生成 1-${target} 号。可以为每个玩家设置代号或昵称。</div>
+              </div>
+              <button onclick="nav('newGame1')">上一步</button>
+            </div>
+
+            <div class="${valid ? "notice success-notice" : "notice"}">
+              当前卡牌总数：<strong>${total}</strong> / ${target}
+              ${valid ? "，可以开始游戏。" : total < target ? `，还差 ${target - total} 张。` : `，多了 ${total - target} 张。`}
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid grid-2">
+              <div>
+                <div class="panel-title" style="font-size:17px;">玩家代号</div>
+                <div class="form-grid" style="margin-top:12px;">
+                  ${app.draftGame.players.map((p, index) => `
+                    <div class="form-row">
+                      <div>
+                        <label>座位号</label>
+                        <input value="${p.seat}号" disabled />
+                      </div>
+                      <div>
+                        <label>代号 / 昵称，可选</label>
+                        <input id="player_alias_${index}" value="${h(p.alias)}" placeholder="例如：阿明、Luna" />
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div>
+                <div class="panel-title" style="font-size:17px;">卡牌数量</div>
+                <div style="margin-top:12px;">
+                  ${cards.map(card => {
+                    const count = app.draftGame.counts[card.id] || 0;
+                    return `
+                      <div class="counter-row">
+                        <div>
+                          <div class="item-title" style="margin-bottom:2px;">
+                            ${h(cardIcon(card))} ${h(cardName(card))}
+                            ${cardFaction(card) ? `<span class="badge">${h(cardFaction(card))}</span>` : ""}
+                          </div>
+                          <div class="item-meta">${h(cardDesc(card) || "")}</div>
+                        </div>
+                        <div class="counter">
+                          <button onclick="changeCardCount('${card.id}', -1)">-</button>
+                          <strong>${count}</strong>
+                          <button onclick="changeCardCount('${card.id}', 1)">+</button>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button onclick="nav('newGame1')">返回选择牌组</button>
+              <button class="btn-primary" ${valid ? "" : "disabled"} onclick="createGame()">生成抽卡池</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function readPlayerAliases() {
+      if (!app.draftGame?.players) return;
+
+      app.draftGame.players.forEach((p, index) => {
+        const el = $(`player_alias_${index}`);
+        if (el) p.alias = el.value.trim();
+      });
+    }
+
+    function changeCardCount(cardId, delta) {
+      readPlayerAliases();
+      const current = app.draftGame.counts[cardId] || 0;
+      app.draftGame.counts[cardId] = Math.max(0, current + delta);
+      render();
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function createGame() {
+      readPlayerAliases();
+
+      const target = app.draftGame.playerCount;
+      const total = Object.values(app.draftGame.counts).reduce((a, b) => a + Number(b || 0), 0);
+
+      if (total !== target) {
+        alert("卡牌总数必须等于玩家人数。");
+        return;
+      }
+
+      let pool = [];
+
+      Object.entries(app.draftGame.counts).forEach(([cardId, count]) => {
+        for (let i = 0; i < count; i++) {
+          pool.push({
+            instanceId: uid("card_instance"),
+            cardId,
+            drawnBy: null
+          });
+        }
+      });
+
+      pool = shuffle(pool);
+
+      data.currentGame = {
+        id: uid("game"),
+        createdAt: new Date().toISOString(),
+        baseDeckId: app.draftGame.baseDeckId,
+        extensionDeckIds: app.draftGame.extensionDeckIds,
+        playerCount: app.draftGame.playerCount,
+        players: app.draftGame.players.map(p => ({
+          ...p,
+          drawnCardId: null,
+          drawnAt: null,
+          viewed: false
+        })),
+        counts: app.draftGame.counts,
+        pool,
+        status: "drawing"
+      };
+
+      app.selectedPlayerId = null;
+      app.drawStage = "select";
+      app.hostReveal = false;
+
+      saveData();
+      nav("draw");
+    }
+
+    function playerLabel(player) {
+      return `${player.seat}号${player.alias ? " " + player.alias : ""}`;
+    }
+
+    function renderDraw() {
+      const game = data.currentGame;
+      if (!game) {
+        return `
+          <div class="panel">
+            <div class="empty">当前没有进行中的游戏。</div>
+            <div class="actions">
+              <button class="btn-primary" onclick="startNewGame()">新建游戏</button>
+            </div>
+          </div>
+        `;
+      }
+
+      const drawnCount = game.players.filter(p => p.drawnCardId).length;
+      const allDone = drawnCount === game.playerCount;
+      const selectedPlayer = game.players.find(p => p.id === app.selectedPlayerId);
+
+      if (app.drawStage === "pick" && selectedPlayer) {
+        const remaining = game.pool.filter(x => !x.drawnBy);
+
+        return `
+          <section class="page">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">${h(playerLabel(selectedPlayer))}，请抽取一张卡牌</h2>
+                  <div class="panel-desc">剩余卡牌：${remaining.length} 张。</div>
+                </div>
+                <button onclick="cancelPlayerDraw()">返回</button>
+              </div>
+
+              <div class="draw-card-grid">
+                ${remaining.map(item => `
+                  <button class="draw-card" onclick="drawCard('${item.instanceId}')">?</button>
+                `).join("")}
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      if (app.drawStage === "view" && selectedPlayer) {
+        const card = getCard(selectedPlayer.drawnCardId);
+
+        return `
+          <section class="page">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">${h(playerLabel(selectedPlayer))}</h2>
+                  <div class="panel-desc">请确认周围没有人看到屏幕，然后按住按钮查看身份。</div>
+                </div>
+              </div>
+
+              <div id="identityBox" class="identity-secret">
+                <div class="hold-hint">
+                  <div style="font-size:48px;">🙈</div>
+                  <div class="panel-title" style="margin-top:12px;">身份已隐藏</div>
+                  <div class="panel-desc">按住下方按钮查看，松开后隐藏。</div>
+                </div>
+
+                <div class="identity-content">
+                  <div class="muted">你的身份是</div>
+                  <div class="identity-name">${h(cardIcon(card))} ${h(cardName(card))}</div>
+                  ${cardFaction(card) ? `<div class="badge badge-primary">${h(cardFaction(card))}</div>` : ""}
+                  <div style="margin-top:14px;line-height:1.7;">${h(cardDesc(card) || "无描述")}</div>
+                  ${card?.values?.notes ? `<div class="item-meta" style="margin-top:10px;">备注：${h(card.values.notes)}</div>` : ""}
+                </div>
+              </div>
+
+              <div class="actions" style="justify-content:center;">
+                <button
+                  class="btn-warning"
+                  onpointerdown="showIdentity(true)"
+                  onpointerup="showIdentity(false)"
+                  onpointercancel="showIdentity(false)"
+                  onmouseleave="showIdentity(false)"
+                >
+                  按住查看身份
+                </button>
+                <button class="btn-success" onclick="completeDraw()">我已记住，完成抽卡</button>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">${allDone ? "抽卡完成" : "请选择你的代号"}</h2>
+                <div class="panel-desc">已抽取：${drawnCount} / ${game.playerCount}</div>
+              </div>
+              <div class="actions" style="margin-top:0;">
+                <button onclick="nav('host')">主持人面板</button>
+                <button class="btn-danger" onclick="endCurrentGame()">结束本局</button>
+              </div>
+            </div>
+
+            ${allDone ? `
+              <div class="notice success-notice">所有玩家已经完成抽卡。主持人可以进入主持人面板查看完整身份。</div>
+            ` : `
+              <div class="notice">主持人可以叫号，玩家选择自己的代号后抽取卡牌。</div>
+            `}
+
+            <div class="divider"></div>
+
+            <div class="player-grid">
+              ${game.players.map(player => {
+                const drawn = !!player.drawnCardId;
+                return `
+                  <button
+                    class="player-button ${drawn ? "player-drawn" : ""}"
+                    ${drawn ? "disabled" : ""}
+                    onclick="selectPlayer('${player.id}')"
+                  >
+                    <strong>${h(playerLabel(player))}</strong>
+                    <span class="small">${drawn ? "已抽取" : "未抽取"}</span>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="actions">
+              <button onclick="nav('host')">主持人查看结果</button>
+              <button onclick="exportCurrentGame()">导出本局结果</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function selectPlayer(playerId) {
+      const game = data.currentGame;
+      const player = game.players.find(p => p.id === playerId);
+
+      if (!player || player.drawnCardId) return;
+
+      app.selectedPlayerId = playerId;
+      app.drawStage = "pick";
+      render();
+    }
+
+    function cancelPlayerDraw() {
+      app.selectedPlayerId = null;
+      app.drawStage = "select";
+      render();
+    }
+
+    function drawCard(instanceId) {
+      const game = data.currentGame;
+      const player = game.players.find(p => p.id === app.selectedPlayerId);
+      const item = game.pool.find(x => x.instanceId === instanceId);
+
+      if (!player || !item || item.drawnBy) return;
+
+      item.drawnBy = player.id;
+      player.drawnCardId = item.cardId;
+      player.drawnAt = new Date().toISOString();
+
+      app.drawStage = "view";
+
+      saveData();
+      render();
+    }
+
+    function showIdentity(show) {
+      const box = $("identityBox");
+      if (!box) return;
+      box.classList.toggle("show", show);
+    }
+
+    function completeDraw() {
+      const game = data.currentGame;
+      const player = game.players.find(p => p.id === app.selectedPlayerId);
+
+      if (player) player.viewed = true;
+
+      app.selectedPlayerId = null;
+      app.drawStage = "select";
+
+      saveData();
+      render();
+    }
+
+    function endCurrentGame() {
+      if (!confirm("确定结束当前游戏吗？当前抽卡结果会被清除。")) return;
+      data.currentGame = null;
+      saveData();
+      nav("home");
+    }
+
+    function renderHost() {
+      const game = data.currentGame;
+
+      if (!game) {
+        return `
+          <div class="panel">
+            <div class="empty">当前没有进行中的游戏。</div>
+          </div>
+        `;
+      }
+
+      if (!app.hostReveal) {
+        return `
+          <section class="page">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">主持人面板</h2>
+                  <div class="panel-desc">这里会显示所有玩家身份，请确认只有主持人可以看到屏幕。</div>
+                </div>
+                <button onclick="nav('draw')">返回抽卡</button>
+              </div>
+
+              <div class="notice danger-notice">
+                即将显示所有玩家身份。请不要让普通玩家看到。
+              </div>
+
+              <div class="actions">
+                <button class="btn-danger" onclick="app.hostReveal = true; render()">显示全部身份</button>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">主持人面板</h2>
+                <div class="panel-desc">可以按号码、阵营或角色查看抽卡结果。</div>
+              </div>
+              <div class="actions" style="margin-top:0;">
+                <button onclick="nav('draw')">返回抽卡</button>
+                <button onclick="app.hostReveal=false; render()">隐藏身份</button>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="${app.hostMode === "seat" ? "btn-primary" : ""}" onclick="app.hostMode='seat'; render()">按号码</button>
+              <button class="${app.hostMode === "faction" ? "btn-primary" : ""}" onclick="app.hostMode='faction'; render()">按阵营</button>
+              <button class="${app.hostMode === "role" ? "btn-primary" : ""}" onclick="app.hostMode='role'; render()">按角色</button>
+              <button onclick="exportCurrentGame()">导出本局结果</button>
+            </div>
+
+            <div class="divider"></div>
+
+            ${renderHostContent(game)}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderHostContent(game) {
+      if (app.hostMode === "faction") return renderHostGrouped(game, "faction");
+      if (app.hostMode === "role") return renderHostGrouped(game, "role");
+
+      return `
+        <table class="host-table">
+          <thead>
+            <tr>
+              <th>玩家</th>
+              <th>身份</th>
+              <th>阵营</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${game.players.map(player => {
+              const card = getCard(player.drawnCardId);
+              return `
+                <tr>
+                  <td>${h(playerLabel(player))}</td>
+                  <td>${card ? `${h(cardIcon(card))} ${h(cardName(card))}` : "未抽取"}</td>
+                  <td>${h(cardFaction(card) || "-")}</td>
+                  <td>${h(cardDesc(card) || "-")}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderHostGrouped(game, mode) {
+      const groups = {};
+
+      game.players.forEach(player => {
+        const card = getCard(player.drawnCardId);
+        const key = mode === "faction"
+          ? (cardFaction(card) || "未分组")
+          : (cardName(card) || "未抽取");
+
+        if (!groups[key]) groups[key] = [];
+        groups[key].push({ player, card });
+      });
+
+      return `
+        <div class="grid">
+          ${Object.entries(groups).map(([key, rows]) => `
+            <div class="item">
+              <div class="item-title">${h(key)} <span class="badge">${rows.length} 人</span></div>
+              <div class="item-meta">
+                ${rows.map(row => `
+                  <div style="margin:6px 0;">
+                    ${h(playerLabel(row.player))}
+                    ${mode === "faction" && row.card ? `：${h(cardIcon(row.card))} ${h(cardName(row.card))}` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderDataPage() {
+      return `
+        <section class="page">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">导入 / 导出</h2>
+                <div class="panel-desc">当前静态版使用浏览器 localStorage 本地保存数据。可以通过 JSON 文件备份和迁移。</div>
+              </div>
+            </div>
+
+            <div class="grid grid-2">
+              <div class="item">
+                <div class="item-title">导出全部数据</div>
+                <div class="item-meta">包含牌库、卡牌、基础牌组、扩展牌组和当前游戏。</div>
+                <div class="actions">
+                  <button class="btn-primary" onclick="exportAllData()">导出 JSON</button>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="item-title">导入数据</div>
+                <div class="item-meta">导入 JSON 后会覆盖当前本地数据，请提前备份。</div>
+                <div class="actions">
+                  <input id="importFile" type="file" accept="application/json" />
+                  <button class="btn-warning" onclick="importData()">导入 JSON</button>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="item-title">导出本局结果</div>
+                <div class="item-meta">如果当前有进行中的游戏，可以单独导出玩家身份结果。</div>
+                <div class="actions">
+                  <button onclick="exportCurrentGame()" ${data.currentGame ? "" : "disabled"}>导出本局</button>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="item-title">重置默认数据</div>
+                <div class="item-meta">清空当前数据，恢复默认狼人杀牌库和牌组。</div>
+                <div class="actions">
+                  <button class="btn-danger" onclick="resetData()">重置</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="notice">
+              说明：后期升级 PWA 时，可以继续沿用这套数据结构。静态版使用 localStorage；
+              PWA 版建议将用户数据迁移到 IndexedDB，并增加离线缓存和安装能力。
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function downloadJson(filename, obj) {
+      const blob = new Blob([JSON.stringify(obj, null, 2)], {
+        type: "application/json;charset=utf-8"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+    }
+
+    function exportAllData() {
+      downloadJson(`card-box-backup-${dateStamp()}.json`, data);
+    }
+
+    function exportCurrentGame() {
+      if (!data.currentGame) {
+        alert("当前没有游戏。");
+        return;
+      }
+
+      const game = data.currentGame;
+
+      const result = {
+        exportedAt: new Date().toISOString(),
+        gameId: game.id,
+        playerCount: game.playerCount,
+        baseDeck: getDeck(game.baseDeckId)?.name || "",
+        extensionDecks: game.extensionDeckIds.map(id => getDeck(id)?.name || ""),
+        players: game.players.map(player => {
+          const card = getCard(player.drawnCardId);
+          return {
+            seat: player.seat,
+            alias: player.alias,
+            label: playerLabel(player),
+            cardName: cardName(card),
+            faction: cardFaction(card),
+            description: cardDesc(card),
+            notes: card?.values?.notes || ""
+          };
+        })
+      };
+
+      downloadJson(`card-box-game-result-${dateStamp()}.json`, result);
+    }
+
+    function importData() {
+      const file = $("importFile")?.files?.[0];
+
+      if (!file) {
+        alert("请选择要导入的 JSON 文件。");
+        return;
+      }
+
+      if (!confirm("导入后会覆盖当前本地数据，确定继续吗？")) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result);
+
+          if (!imported.libraries || !imported.cards || !imported.decks) {
+            alert("导入失败：文件格式不正确。");
+            return;
+          }
+
+          data = imported;
+          saveData();
+          alert("导入成功。");
+          nav("home");
+        } catch (e) {
+          alert("导入失败：JSON 解析错误。");
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function resetData() {
+      if (!confirm("确定重置为默认数据吗？当前数据会被清空。")) return;
+      data = createDefaultData();
+      saveData();
+      nav("home");
+    }
+
+    function dateStamp() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${yyyy}${mm}${dd}-${hh}${mi}`;
+    }
+
+    render();
+
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+            .then(function () {
+            console.log("Service Worker 注册成功");
+            })
+            .catch(function (error) {
+            console.warn("Service Worker 注册失败", error);
+            });
+        });
+    }
+  </script>
+</body>
+</html>

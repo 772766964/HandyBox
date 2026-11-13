@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>番茄钟</title>
+
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="HandyBox" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+
+  <style>
+    :root {
+      --bg: #fff7f3;
+      --card: rgba(255, 255, 255, 0.82);
+      --text: #2d1b16;
+      --muted: #7d6259;
+      --primary: #ff5a3c;
+      --primary-dark: #d83d25;
+      --secondary: #ffe1d8;
+      --border: rgba(45, 27, 22, 0.12);
+      --shadow: 0 24px 70px rgba(216, 61, 37, 0.18);
+      --ring-track: rgba(255, 90, 60, 0.18);
+      --modal-bg: rgba(20, 16, 15, 0.46);
+    }
+
+    body.theme-forest {
+      --bg: #effaf1;
+      --card: rgba(255, 255, 255, 0.82);
+      --text: #122417;
+      --muted: #55705d;
+      --primary: #2fa866;
+      --primary-dark: #1d7f4a;
+      --secondary: #dff4e8;
+      --border: rgba(18, 36, 23, 0.12);
+      --shadow: 0 24px 70px rgba(47, 168, 102, 0.18);
+      --ring-track: rgba(47, 168, 102, 0.18);
+      --modal-bg: rgba(11, 31, 18, 0.46);
+    }
+
+    body.theme-ocean {
+      --bg: #eef8ff;
+      --card: rgba(255, 255, 255, 0.82);
+      --text: #102331;
+      --muted: #547184;
+      --primary: #2497d8;
+      --primary-dark: #1472aa;
+      --secondary: #d9f0ff;
+      --border: rgba(16, 35, 49, 0.12);
+      --shadow: 0 24px 70px rgba(36, 151, 216, 0.18);
+      --ring-track: rgba(36, 151, 216, 0.18);
+      --modal-bg: rgba(5, 29, 45, 0.46);
+    }
+
+    body.theme-dark {
+      --bg: #101116;
+      --card: rgba(28, 30, 38, 0.9);
+      --text: #f5f7fb;
+      --muted: #a8adbb;
+      --primary: #b17cff;
+      --primary-dark: #8d55e8;
+      --secondary: #282337;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 24px 70px rgba(177, 124, 255, 0.16);
+      --ring-track: rgba(177, 124, 255, 0.2);
+      --modal-bg: rgba(0, 0, 0, 0.58);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Microsoft YaHei",
+        sans-serif;
+      color: var(--text);
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 10%, var(--secondary), transparent 34%),
+        radial-gradient(circle at 88% 88%, var(--ring-track), transparent 36%),
+        linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--bg), var(--secondary) 34%));
+      transition: background 0.35s ease, color 0.35s ease;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(620px, 100%);
+      min-height: min(760px, calc(100dvh - 36px));
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition:
+        width 0.25s ease,
+        min-height 0.25s ease,
+        padding 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease,
+        border 0.25s ease;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      transition: opacity 0.2s ease;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(30px, 7vw, 46px);
+      letter-spacing: -0.07em;
+      line-height: 1;
+    }
+
+    .brand p {
+      margin: 9px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stats {
+      min-width: 100px;
+      padding: 12px 14px;
+      border-radius: 20px;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stats .number {
+      display: block;
+      font-size: 30px;
+      font-weight: 950;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .stats .label {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .icon-btn {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--secondary);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 900;
+      transition: 0.16s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      transition: opacity 0.2s ease;
+    }
+
+    .mode-btn {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+      border-radius: 999px;
+      padding: 12px 8px;
+      font-weight: 900;
+      transition: 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+    }
+
+    .timer-center {
+      flex: 1;
+      min-height: 390px;
+      display: grid;
+      place-items: center;
+    }
+
+    .progress-wrap {
+      position: relative;
+      width: min(74vw, 390px);
+      height: min(74vw, 390px);
+      min-width: 260px;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .progress-ring {
+      position: absolute;
+      inset: 0;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring circle {
+      fill: none;
+      stroke-width: 16;
+      stroke-linecap: round;
+    }
+
+    .progress-ring .track {
+      stroke: var(--ring-track);
+    }
+
+    .progress-ring .progress {
+      stroke: var(--primary);
+      transition: stroke-dashoffset 0.24s linear;
+      filter: drop-shadow(0 0 9px color-mix(in srgb, var(--primary), transparent 52%));
+    }
+
+    .time-box {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(64px, 16vw, 108px);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.08em;
+    }
+
+    .status {
+      margin-top: 14px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 12px;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 18px;
+      padding: 15px 16px;
+      font-weight: 950;
+      color: var(--text);
+      background: var(--secondary);
+      transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+    }
+
+    .immersive {
+      padding: 0;
+    }
+
+    .immersive .shell {
+      width: 100%;
+      min-height: 100dvh;
+      padding: 0;
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .immersive .topbar,
+    .immersive .mode-tabs,
+    .immersive .controls {
+      display: none;
+    }
+
+    .immersive .timer-center {
+      width: 100%;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+        env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .immersive .progress-wrap {
+      width: min(78vw, 78vh, 480px);
+      height: min(78vw, 78vh, 480px);
+      min-width: min(78vw, 78vh, 280px);
+      min-height: min(78vw, 78vh, 280px);
+    }
+
+    .immersive .time {
+      font-size: clamp(72px, 18vw, 128px);
+    }
+
+    .immersive .status {
+      font-size: clamp(15px, 3vw, 20px);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: var(--modal-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      max-height: min(760px, calc(100dvh - 36px));
+      overflow: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .close-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--secondary);
+      color: var(--text);
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .section {
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.26);
+      margin-bottom: 14px;
+    }
+
+    body.theme-dark .section {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--text);
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    body.theme-dark input,
+    body.theme-dark select {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--ring-track);
+    }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .switch-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .switch-row input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
+      flex: 0 0 auto;
+    }
+
+    .small-text {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(22px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      box-shadow: var(--shadow);
+      font-weight: 900;
+      transition: 0.25s ease;
+      z-index: 50;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 12px;
+      }
+
+      .shell {
+        min-height: calc(100dvh - 24px);
+        padding: 20px;
+        border-radius: 28px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .stats {
+        flex: 1;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 620px) {
+      body {
+        padding: 10px;
+      }
+
+      .shell {
+        width: min(880px, 100%);
+        min-height: calc(100dvh - 20px);
+        padding: 16px;
+        border-radius: 24px;
+        gap: 10px;
+      }
+
+      .brand h1 {
+        font-size: 26px;
+      }
+
+      .brand p {
+        display: none;
+      }
+
+      .stats {
+        padding: 9px 12px;
+      }
+
+      .stats .number {
+        font-size: 24px;
+      }
+
+      .timer-center {
+        min-height: 220px;
+      }
+
+      .progress-wrap {
+        width: min(42vw, 52vh, 280px);
+        height: min(42vw, 52vh, 280px);
+        min-width: 210px;
+        min-height: 210px;
+      }
+
+      .time {
+        font-size: clamp(54px, 10vw, 82px);
+      }
+
+      .btn,
+      .mode-btn {
+        padding: 10px 12px;
+      }
+
+      .immersive .progress-wrap {
+        width: min(72vw, 82vh, 430px);
+        height: min(72vw, 82vh, 430px);
+      }
+    }
+  </style>
+</head>
+
+<body class="theme-tomato">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>番茄钟</h1>
+        <p>专注时隐藏干扰，只留下倒计时。</p>
+      </div>
+
+      <div class="top-actions">
+        <div class="stats" aria-label="今日完成次数">
+          <span id="todayCount" class="number">0</span>
+          <span class="label">今日完成</span>
+        </div>
+
+        <button id="openSettingsBtn" class="icon-btn" aria-label="打开设置">⚙</button>
+      </div>
+    </header>
+
+    <nav class="mode-tabs" role="tablist" aria-label="计时模式">
+      <button class="mode-btn active" data-mode="focus">专注</button>
+      <button class="mode-btn" data-mode="short">短休息</button>
+      <button class="mode-btn" data-mode="long">长休息</button>
+    </nav>
+
+    <section id="timerCenter" class="timer-center" aria-live="polite">
+      <div class="progress-wrap">
+        <svg class="progress-ring" viewBox="0 0 260 260" aria-hidden="true">
+          <circle class="track" cx="130" cy="130" r="112"></circle>
+          <circle id="progressCircle" class="progress" cx="130" cy="130" r="112"></circle>
+        </svg>
+
+        <div class="time-box">
+          <div id="timeDisplay" class="time">25:00</div>
+          <div id="statusText" class="status">准备开始专注</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button id="startPauseBtn" class="btn primary">开始</button>
+      <button id="resetBtn" class="btn">重置</button>
+      <button id="skipBtn" class="btn ghost">跳过</button>
+    </section>
+  </main>
+
+  <section id="settingsModal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>设置</h2>
+        <button id="closeSettingsBtn" class="close-btn" aria-label="关闭设置">×</button>
+      </div>
+
+      <section class="section">
+        <div class="section-title">
+          <span>时间设置</span>
+          <span>单位：分钟</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="focusMinutes">专注时间</label>
+            <input id="focusMinutes" type="number" min="1" max="180" step="1" />
+          </div>
+
+          <div class="field">
+            <label for="shortMinutes">短休息</label>
+            <input id="shortMinutes" type="number" min="1" max="60" step="1" />
+          </div>
+
+          <div class="field">
+            <label for="longMinutes">长休息</label>
+            <input id="longMinutes" type="number" min="1" max="120" step="1" />
+          </div>
+
+          <div class="field">
+            <label for="longEvery">每几次长休息</label>
+            <input id="longEvery" type="number" min="2" max="12" step="1" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">
+          <span>页面与提醒</span>
+        </div>
+
+        <div class="field full">
+          <label for="themeSelect">页面风格</label>
+          <select id="themeSelect">
+            <option value="tomato">番茄红</option>
+            <option value="forest">森林绿</option>
+            <option value="ocean">海洋蓝</option>
+            <option value="dark">深色夜间</option>
+          </select>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>提醒声音</strong>
+            <p class="small-text">计时结束时播放提示音。</p>
+          </div>
+          <input id="soundEnabled" type="checkbox" />
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>自动进入下一阶段</strong>
+            <p class="small-text">专注结束后自动休息，休息结束后自动专注。</p>
+          </div>
+          <input id="autoStart" type="checkbox" />
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <strong>浏览器通知</strong>
+            <p class="small-text">需要浏览器授权，手机浏览器支持情况可能不同。</p>
+          </div>
+          <input id="notificationEnabled" type="checkbox" />
+        </div>
+      </section>
+
+      <div class="modal-actions">
+        <button id="saveSettingsBtn" class="btn primary">保存设置</button>
+        <button id="resetStatsBtn" class="btn ghost">清空今日次数</button>
+      </div>
+
+      <p class="small-text">
+        沉浸专注时，页面只显示中间倒计时。轻点倒计时区域可退出沉浸，显示操作按钮。
+      </p>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE_KEYS = {
+      settings: "static_pomodoro_settings_v2",
+      stats: "static_pomodoro_stats_v2"
+    };
+
+    const defaultSettings = {
+      focusMinutes: 25,
+      shortMinutes: 5,
+      longMinutes: 15,
+      longEvery: 4,
+      theme: "tomato",
+      soundEnabled: true,
+      autoStart: false,
+      notificationEnabled: false
+    };
+
+    const modeMap = {
+      focus: {
+        label: "专注",
+        ready: "准备开始专注",
+        running: "正在专注",
+        done: "专注完成"
+      },
+      short: {
+        label: "短休息",
+        ready: "准备短休息",
+        running: "正在短休息",
+        done: "短休息结束"
+      },
+      long: {
+        label: "长休息",
+        ready: "准备长休息",
+        running: "正在长休息",
+        done: "长休息结束"
+      }
+    };
+
+    let settings = loadSettings();
+    let stats = loadStats();
+
+    let state = {
+      mode: "focus",
+      running: false,
+      duration: settings.focusMinutes * 60,
+      remaining: settings.focusMinutes * 60,
+      endAt: null,
+      completedInCycle: 0,
+      intervalId: null
+    };
+
+    let audioContext = null;
+    let toastTimer = null;
+
+    const elements = {
+      todayCount: document.getElementById("todayCount"),
+      timerCenter: document.getElementById("timerCenter"),
+      timeDisplay: document.getElementById("timeDisplay"),
+      statusText: document.getElementById("statusText"),
+      progressCircle: document.getElementById("progressCircle"),
+      startPauseBtn: document.getElementById("startPauseBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      skipBtn: document.getElementById("skipBtn"),
+      modeBtns: document.querySelectorAll(".mode-btn"),
+
+      openSettingsBtn: document.getElementById("openSettingsBtn"),
+      closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+      settingsModal: document.getElementById("settingsModal"),
+
+      focusMinutes: document.getElementById("focusMinutes"),
+      shortMinutes: document.getElementById("shortMinutes"),
+      longMinutes: document.getElementById("longMinutes"),
+      longEvery: document.getElementById("longEvery"),
+      themeSelect: document.getElementById("themeSelect"),
+      soundEnabled: document.getElementById("soundEnabled"),
+      autoStart: document.getElementById("autoStart"),
+      notificationEnabled: document.getElementById("notificationEnabled"),
+      saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+      resetStatsBtn: document.getElementById("resetStatsBtn"),
+
+      toast: document.getElementById("toast")
+    };
+
+    const circleRadius = 112;
+    const circleCircumference = 2 * Math.PI * circleRadius;
+
+    elements.progressCircle.style.strokeDasharray = circleCircumference;
+    elements.progressCircle.style.strokeDashoffset = 0;
+
+    initialize();
+
+    function initialize() {
+      applyTheme(settings.theme);
+      applySettingsToForm();
+      updateStatsUI();
+      setMode("focus", false);
+      bindEvents();
+      render();
+    }
+
+    function bindEvents() {
+      elements.startPauseBtn.addEventListener("click", () => {
+        unlockAudio();
+
+        if (state.running) {
+          pauseTimer();
+          exitImmersive();
+        } else {
+          startTimer();
+        }
+      });
+
+      elements.resetBtn.addEventListener("click", () => {
+        resetTimer();
+      });
+
+      elements.skipBtn.addEventListener("click", () => {
+        completeCurrentStage(true);
+      });
+
+      elements.modeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setMode(btn.dataset.mode, true);
+        });
+      });
+
+      elements.timerCenter.addEventListener("click", () => {
+        if (document.body.classList.contains("immersive")) {
+          exitImmersive();
+          showToast("已退出沉浸模式");
+        }
+      });
+
+      elements.openSettingsBtn.addEventListener("click", openSettings);
+      elements.closeSettingsBtn.addEventListener("click", closeSettings);
+
+      elements.settingsModal.addEventListener("click", (event) => {
+        if (event.target === elements.settingsModal) {
+          closeSettings();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeSettings();
+          exitImmersive();
+        }
+      });
+
+      elements.themeSelect.addEventListener("change", () => {
+        applyTheme(elements.themeSelect.value);
+      });
+
+      elements.saveSettingsBtn.addEventListener("click", async () => {
+        await saveSettingsFromModal();
+      });
+
+      elements.resetStatsBtn.addEventListener("click", () => {
+        if (!confirm("确定要清空今日完成次数吗？")) return;
+
+        stats.count = 0;
+        saveStats();
+        updateStatsUI();
+        showToast("今日完成次数已清空");
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && state.running) {
+          tick();
+        }
+      });
+    }
+
+    function loadSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings));
+        return {
+          ...defaultSettings,
+          ...(saved || {})
+        };
+      } catch {
+        return { ...defaultSettings };
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+    }
+
+    function todayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function loadStats() {
+      const today = todayString();
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.stats));
+
+        if (!saved || saved.date !== today) {
+          return {
+            date: today,
+            count: 0
+          };
+        }
+
+        return saved;
+      } catch {
+        return {
+          date: today,
+          count: 0
+        };
+      }
+    }
+
+    function saveStats() {
+      stats.date = todayString();
+      localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(stats));
+    }
+
+    function applySettingsToForm() {
+      elements.focusMinutes.value = settings.focusMinutes;
+      elements.shortMinutes.value = settings.shortMinutes;
+      elements.longMinutes.value = settings.longMinutes;
+      elements.longEvery.value = settings.longEvery;
+      elements.themeSelect.value = settings.theme;
+      elements.soundEnabled.checked = settings.soundEnabled;
+      elements.autoStart.checked = settings.autoStart;
+      elements.notificationEnabled.checked = settings.notificationEnabled;
+    }
+
+    function readSettingsFromForm() {
+      const focusMinutes = Number(elements.focusMinutes.value);
+      const shortMinutes = Number(elements.shortMinutes.value);
+      const longMinutes = Number(elements.longMinutes.value);
+      const longEvery = Number(elements.longEvery.value);
+
+      if (!isIntegerInRange(focusMinutes, 1, 180)) {
+        showToast("专注时间请输入 1 到 180 的整数");
+        return null;
+      }
+
+      if (!isIntegerInRange(shortMinutes, 1, 60)) {
+        showToast("短休息请输入 1 到 60 的整数");
+        return null;
+      }
+
+      if (!isIntegerInRange(longMinutes, 1, 120)) {
+        showToast("长休息请输入 1 到 120 的整数");
+        return null;
+      }
+
+      if (!isIntegerInRange(longEvery, 2, 12)) {
+        showToast("长休息间隔请输入 2 到 12 的整数");
+        return null;
+      }
+
+      return {
+        focusMinutes,
+        shortMinutes,
+        longMinutes,
+        longEvery,
+        theme: elements.themeSelect.value,
+        soundEnabled: elements.soundEnabled.checked,
+        autoStart: elements.autoStart.checked,
+        notificationEnabled: elements.notificationEnabled.checked
+      };
+    }
+
+    function isIntegerInRange(value, min, max) {
+      return Number.isInteger(value) && value >= min && value <= max;
+    }
+
+    function openSettings() {
+      applySettingsToForm();
+      elements.settingsModal.classList.remove("hidden");
+    }
+
+    function closeSettings() {
+      elements.settingsModal.classList.add("hidden");
+      applyTheme(settings.theme);
+      applySettingsToForm();
+    }
+
+    async function saveSettingsFromModal() {
+      const nextSettings = readSettingsFromForm();
+
+      if (!nextSettings) return;
+
+      if (nextSettings.notificationEnabled) {
+        const granted = await requestNotificationPermission();
+
+        if (!granted) {
+          nextSettings.notificationEnabled = false;
+          elements.notificationEnabled.checked = false;
+          showToast("通知授权失败或被拒绝");
+        }
+      }
+
+      settings = {
+        ...settings,
+        ...nextSettings
+      };
+
+      saveSettings();
+      applyTheme(settings.theme);
+      applySettingsToForm();
+
+      if (!state.running) {
+        setMode(state.mode, false);
+      }
+
+      if (settings.soundEnabled) {
+        unlockAudio();
+      }
+
+      showToast(state.running ? "设置已保存，将在下一阶段生效" : "设置已保存");
+    }
+
+    function applyTheme(theme) {
+      document.body.classList.remove(
+        "theme-tomato",
+        "theme-forest",
+        "theme-ocean",
+        "theme-dark"
+      );
+
+      document.body.classList.add(`theme-${theme}`);
+    }
+
+    function getDurationByMode(mode) {
+      if (mode === "focus") return settings.focusMinutes * 60;
+      if (mode === "short") return settings.shortMinutes * 60;
+      return settings.longMinutes * 60;
+    }
+
+    function setMode(mode, showMessage = true) {
+      pauseTimer(false);
+      exitImmersive();
+
+      state.mode = mode;
+      state.duration = getDurationByMode(mode);
+      state.remaining = state.duration;
+      state.endAt = null;
+
+      elements.modeBtns.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.mode === mode);
+      });
+
+      if (showMessage) {
+        showToast(`已切换到${modeMap[mode].label}`);
+      }
+
+      render();
+    }
+
+    function startTimer() {
+      if (state.remaining <= 0) {
+        state.remaining = state.duration;
+      }
+
+      state.running = true;
+      state.endAt = Date.now() + state.remaining * 1000;
+
+      clearInterval(state.intervalId);
+      state.intervalId = setInterval(tick, 250);
+
+      if (state.mode === "focus") {
+        enterImmersive();
+      }
+
+      tick();
+    }
+
+    function pauseTimer(updateUi = true) {
+      if (state.running && state.endAt) {
+        state.remaining = Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000));
+      }
+
+      state.running = false;
+      state.endAt = null;
+
+      clearInterval(state.intervalId);
+      state.intervalId = null;
+
+      if (updateUi) {
+        render();
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer(false);
+      exitImmersive();
+
+      state.duration = getDurationByMode(state.mode);
+      state.remaining = state.duration;
+      state.endAt = null;
+
+      render();
+      showToast("已重置");
+    }
+
+    function tick() {
+      if (!state.running || !state.endAt) return;
+
+      state.remaining = Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000));
+      render();
+
+      if (state.remaining <= 0) {
+        completeCurrentStage(false);
+      }
+    }
+
+    function completeCurrentStage(skipped) {
+      const finishedMode = state.mode;
+
+      pauseTimer(false);
+      exitImmersive();
+
+      if (!skipped) {
+        playReminderSound();
+        notify(modeMap[finishedMode].done, getNextHint(finishedMode));
+      }
+
+      if (finishedMode === "focus" && !skipped) {
+        stats.count += 1;
+        state.completedInCycle += 1;
+        saveStats();
+        updateStatsUI();
+      }
+
+      const nextMode = getNextMode(finishedMode);
+
+      setMode(nextMode, false);
+
+      const message = skipped
+        ? `已跳过，进入${modeMap[nextMode].label}`
+        : `${modeMap[finishedMode].done}，进入${modeMap[nextMode].label}`;
+
+      showToast(message);
+
+      if (settings.autoStart && !skipped) {
+        setTimeout(() => {
+          startTimer();
+        }, 800);
+      }
+    }
+
+    function getNextMode(currentMode) {
+      if (currentMode === "focus") {
+        return state.completedInCycle > 0 && state.completedInCycle % settings.longEvery === 0
+          ? "long"
+          : "short";
+      }
+
+      return "focus";
+    }
+
+    function getNextHint(currentMode) {
+      if (currentMode === "focus") {
+        return "辛苦了，现在可以休息一下。";
+      }
+
+      return "休息结束，准备开始下一轮专注。";
+    }
+
+    function enterImmersive() {
+      document.body.classList.add("immersive");
+    }
+
+    function exitImmersive() {
+      document.body.classList.remove("immersive");
+    }
+
+    function updateStatsUI() {
+      elements.todayCount.textContent = stats.count;
+    }
+
+    function render() {
+      elements.timeDisplay.textContent = formatTime(state.remaining);
+
+      elements.statusText.textContent = state.running
+        ? modeMap[state.mode].running
+        : modeMap[state.mode].ready;
+
+      const progress = state.duration > 0
+        ? 1 - state.remaining / state.duration
+        : 0;
+
+      const offset = circleCircumference * (1 - clamp(progress, 0, 1));
+      elements.progressCircle.style.strokeDashoffset = offset;
+
+      elements.startPauseBtn.textContent = state.running ? "暂停" : "开始";
+
+      document.title = `${formatTime(state.remaining)} - ${modeMap[state.mode].label}番茄钟`;
+    }
+
+    function formatTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function unlockAudio() {
+      if (!settings.soundEnabled) return;
+
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+      } catch {
+        // 不支持 Web Audio API 时忽略。
+      }
+    }
+
+    function playReminderSound() {
+      if (!settings.soundEnabled) return;
+
+      try {
+        unlockAudio();
+
+        if (!audioContext) return;
+
+        const now = audioContext.currentTime;
+        const masterGain = audioContext.createGain();
+
+        masterGain.connect(audioContext.destination);
+        masterGain.gain.setValueAtTime(0.0001, now);
+        masterGain.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.05);
+
+        const notes = [660, 880, 990];
+
+        notes.forEach((frequency, index) => {
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          const startTime = now + index * 0.22;
+
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(frequency, startTime);
+
+          gain.gain.setValueAtTime(0.0001, startTime);
+          gain.gain.exponentialRampToValueAtTime(1, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.18);
+
+          oscillator.connect(gain);
+          gain.connect(masterGain);
+
+          oscillator.start(startTime);
+          oscillator.stop(startTime + 0.2);
+        });
+      } catch {
+        // 音频失败不影响计时。
+      }
+    }
+
+    async function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        return false;
+      }
+
+      if (Notification.permission === "granted") {
+        return true;
+      }
+
+      if (Notification.permission === "denied") {
+        return false;
+      }
+
+      const permission = await Notification.requestPermission();
+      return permission === "granted";
+    }
+
+    function notify(title, body) {
+      if (!settings.notificationEnabled) return;
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+
+      try {
+        new Notification(title, {
+          body,
+          silent: true
+        });
+      } catch {
+        // 某些浏览器可能限制通知。
+      }
+    }
+
+    function showToast(message) {
+      elements.toast.textContent = message;
+      elements.toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        elements.toast.classList.remove("show");
+      }, 2200);
+    }
+    
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+            .then(function () {
+            console.log("Service Worker 注册成功");
+            })
+            .catch(function (error) {
+            console.warn("Service Worker 注册失败", error);
+            });
+        });
+    }
+  </script>
+</body>
+</html>
