@@ -1,4 +1,4 @@
-const CACHE_NAME = "handybox-v2";
+const CACHE_NAME = "handybox-v2.1";
 
 const APP_ASSETS = [
   "./",
